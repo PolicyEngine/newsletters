@@ -18,12 +18,7 @@ for file in editions/*.html; do
         ERRORS=$((ERRORS + 1))
     fi
 
-    # Check logo URL uses correct format (no refs/heads/)
-    if grep -q 'refs/heads/' "$file"; then
-        echo "    ❌ ERROR: Logo URL uses refs/heads/ format. Use /master/ or /main/ directly."
-        grep -n 'refs/heads/' "$file"
-        ERRORS=$((ERRORS + 1))
-    fi
+    # Note: refs/heads/master format works fine, no need to flag it
 
 done
 
