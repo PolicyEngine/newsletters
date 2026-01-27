@@ -7,6 +7,16 @@ on:
     branches: [main, master]
 
 jobs:
+  lint-newsletters:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint newsletter HTML files
+        run: |
+          chmod +x scripts/lint-newsletters.sh
+          ./scripts/lint-newsletters.sh
+
   test:
     runs-on: ubuntu-latest
     strategy:
