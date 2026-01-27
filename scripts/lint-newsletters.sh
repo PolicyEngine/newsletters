@@ -18,7 +18,12 @@ for file in editions/*.html; do
         ERRORS=$((ERRORS + 1))
     fi
 
-    # Note: refs/heads/master format works fine, no need to flag it
+    # Check for refs/heads/ in URLs - causes rendering issues in Mailchimp
+    if grep -q 'refs/heads/' "$file"; then
+        echo "    ❌ ERROR: URL contains refs/heads/ which can break in Mailchimp. Use /master/ or /main/ directly."
+        grep -n 'refs/heads/' "$file"
+        ERRORS=$((ERRORS + 1))
+    fi
 
 done
 
