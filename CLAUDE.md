@@ -49,6 +49,27 @@ All newsletter HTML files follow this pattern:
 
 ## Email Compatibility
 
+### ⚠️ CRITICAL: All Images Must Use Absolute URLs
+
+**NEVER use relative paths** like `../assets/images/...` or `./images/...` in newsletters.
+
+Email clients fetch images from URLs - they cannot resolve relative paths. Always use absolute URLs:
+
+```html
+<!-- ❌ WRONG - will show broken image -->
+<img src="../assets/images/dashboard.png">
+
+<!-- ✅ CORRECT - absolute URL -->
+<img src="https://raw.githubusercontent.com/PolicyEngine/newsletters/main/assets/images/dashboard.png">
+```
+
+For images on a feature branch, use the branch name:
+```
+https://raw.githubusercontent.com/PolicyEngine/newsletters/branch-name/assets/images/image.png
+```
+
+### Other Email Compatibility Rules
+
 - **No CSS files**: All styles must be inline
 - **Limited CSS**: Avoid modern CSS features (flexbox, grid)
 - **Table layouts**: Use tables for complex layouts (email clients don't support modern layout)
