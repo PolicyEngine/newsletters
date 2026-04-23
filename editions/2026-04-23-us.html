@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style type="text/css">
+        @media only screen and (max-width: 620px) {
+            .container { width: 100% !important; }
+            .content { padding: 32px 20px !important; }
+            .header { padding: 24px 20px !important; }
+            .footer { padding: 20px !important; }
+            .hero-title { font-size: 28px !important; line-height: 1.15 !important; }
+            .stat-grid { display: block !important; }
+            .stat-item { display: block !important; width: 100% !important; margin-bottom: 16px !important; }
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0F1419; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+
+    <!-- Wrapper -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #0F1419;">
+        <tr>
+            <td align="center" style="padding: 32px 12px;">
+
+                <!-- Main Container -->
+                <table class="container" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%;">
+
+                    <!-- Header Bar -->
+                    <tr>
+                        <td style="padding: 0 0 24px 0;">
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td>
+                                        <img src="https://raw.githubusercontent.com/PolicyEngine/policyengine-app/master/src/images/logos/policyengine/white.png" alt="PolicyEngine" style="height: 24px; width: auto; opacity: 0.9;">
+                                    </td>
+                                    <td align="right" style="font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: #4FD1C5;">
+                                        April 2026
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Hero Section -->
+                    <tr>
+                        <td style="background: linear-gradient(165deg, #1D4044 0%, #234E52 40%, #285E61 100%); border-radius: 16px 16px 0 0; padding: 48px 40px 40px 40px;">
+                            <div style="width: 48px; height: 3px; background: linear-gradient(90deg, #4FD1C5 0%, #81E6D9 100%); margin-bottom: 24px; border-radius: 2px;"></div>
+
+                            <p style="margin: 0 0 12px 0; font-size: 12px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: #81E6D9;">
+                                Major Release
+                            </p>
+
+                            <h1 class="hero-title" style="margin: 0 0 20px 0; font-size: 28px; font-weight: 800; color: #FFFFFF; line-height: 1.15; letter-spacing: -0.02em;">
+                                policyengine.py v4 is here&mdash;plus new state tax credit data, a LIHEAP calculator, and Code for America
+                            </h1>
+
+                            <p style="margin: 0; font-size: 15px; line-height: 1.65; color: #B2F5EA; font-weight: 400;">
+                                Full programmatic access to the US tax-benefit model, new interactive dashboards, and where to find us in May.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Main Content Card -->
+                    <tr>
+                        <td style="background-color: #FFFFFF; padding: 0;">
+
+                            <!-- policyengine.py v4 -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom: 1px solid #E2E8F0;">
+                                <tr>
+                                    <td style="padding: 28px 40px;">
+                                        <p style="margin: 0 0 8px 0; font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #319795;">
+                                            New Release
+                                        </p>
+                                        <p style="margin: 0 0 8px 0; color: #1D4044; font-weight: 700; font-size: 16px;">
+                                            policyengine.py v4: one package, household to population
+                                        </p>
+                                        <p style="margin: 0 0 16px 0; font-size: 13px; line-height: 1.6; color: #475569;">
+                                            The new unified Python package gives researchers, developers, and policy analysts full programmatic access to the US tax-benefit model. Calculate household impacts with plain dictionaries, run population-level microsimulations with certified microdata from HuggingFace, and model custom reforms&mdash;all without the web interface.
+                                        </p>
+
+                                        <!-- Code snippet -->
+                                        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #1A202C; border-radius: 8px; margin-bottom: 16px;">
+                                            <tr>
+                                                <td style="padding: 16px 20px;">
+                                                    <code style="font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 12px; line-height: 1.6; color: #E2E8F0;">
+                                                        <span style="color: #81E6D9;">import</span> policyengine <span style="color: #81E6D9;">as</span> pe<br><br>
+                                                        result = pe.us.calculate_household(<br>
+                                                        &nbsp;&nbsp;household={...},<br>
+                                                        &nbsp;&nbsp;output=[<span style="color: #F6AD55;">"employment_income"</span>,<br>
+                                                        &nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #F6AD55;">"eitc"</span>, <span style="color: #F6AD55;">"household_net_income"</span>]<br>
+                                                        )
+                                                    </code>
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                        <a href="https://www.policyengine.org/us/python" style="display: inline-block; padding: 12px 24px; background-color: #319795; color: #FFFFFF; text-decoration: none; font-weight: 600; font-size: 14px; border-radius: 6px;">
+                                            Read the docs &rarr;
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- State EITCs and CTCs -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom: 1px solid #E2E8F0;">
+                                <tr>
+                                    <td style="padding: 28px 40px;">
+                                        <p style="margin: 0 0 8px 0; font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #319795;">
+                                            New Dashboard
+                                        </p>
+                                        <p style="margin: 0 0 8px 0; color: #1D4044; font-weight: 700; font-size: 16px;">
+                                            State EITCs and CTCs: mapped by impact
+                                        </p>
+                                        <p style="margin: 0 0 16px 0; font-size: 13px; line-height: 1.6; color: #475569;">
+                                            Our new interactive dashboard maps state-level Earned Income Tax Credits and Child Tax Credits across all 50 states and DC. Toggle between state and congressional-district views, filter by credit type, and compare fiscal cost, poverty reduction, and child poverty reduction side by side.
+                                        </p>
+                                        <a href="https://policyengine.github.io/us-state-eitcs-ctcs/" style="display: inline-block; padding: 12px 24px; background-color: #319795; color: #FFFFFF; text-decoration: none; font-weight: 600; font-size: 14px; border-radius: 6px;">
+                                            Explore the dashboard &rarr;
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- LIHEAP Calculator -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom: 1px solid #E2E8F0;">
+                                <tr>
+                                    <td style="padding: 28px 40px;">
+                                        <p style="margin: 0 0 8px 0; font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #319795;">
+                                            New Interactive Tool
+                                        </p>
+                                        <p style="margin: 0 0 8px 0; color: #1D4044; font-weight: 700; font-size: 16px;">
+                                            LIHEAP Benefit Calculator
+                                        </p>
+                                        <p style="margin: 0 0 16px 0; font-size: 13px; line-height: 1.6; color: #475569;">
+                                            LIHEAP helps low-income households pay heating and cooling bills with roughly $4 billion in annual federal block grants. Our new calculator estimates eligibility and benefit amounts for DC, Massachusetts, and Illinois&mdash;enter your state, income, household size, and heating source to see your estimated benefit.
+                                        </p>
+                                        <a href="https://policyengine.github.io/liheap-repeal-dashboard/" style="display: inline-block; padding: 12px 24px; background-color: #319795; color: #FFFFFF; text-decoration: none; font-weight: 600; font-size: 14px; border-radius: 6px;">
+                                            Check your eligibility &rarr;
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Code for America Summit -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom: 1px solid #E2E8F0;">
+                                <tr>
+                                    <td style="padding: 28px 40px;">
+                                        <p style="margin: 0 0 8px 0; font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #6D28D9;">
+                                            Event
+                                        </p>
+                                        <p style="margin: 0 0 8px 0; color: #1D4044; font-weight: 700; font-size: 16px;">
+                                            Meet us at the Code for America Summit
+                                        </p>
+                                        <p style="margin: 0 0 16px 0; font-size: 13px; line-height: 1.6; color: #475569;">
+                                            PolicyEngine will be at the Code for America Summit on May 7&ndash;8 at the Marriott Marquis in Chicago. Come say hello&mdash;we'd love to connect with researchers, government technologists, and civic tech builders working on public policy.
+                                        </p>
+                                        <a href="https://summit.codeforamerica.org/" style="display: inline-block; padding: 12px 24px; background-color: #6D28D9; color: #FFFFFF; text-decoration: none; font-weight: 600; font-size: 14px; border-radius: 6px;">
+                                            Learn more about the Summit &rarr;
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Sign off -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="border-radius: 0 0 16px 16px; overflow: hidden;">
+                                <tr>
+                                    <td style="padding: 32px 40px; background-color: #FFFFFF; border-top: 1px solid #E2E8F0;">
+                                        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #475569;">
+                                            Best wishes,<br>
+                                            <span style="color: #1D4044; font-weight: 600;">The PolicyEngine Team</span>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 32px 0 0 0;">
+                            <!-- Social Links -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 20px;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="https://x.com/ThePolicyEngine" style="color: #81E6D9; text-decoration: none; font-size: 12px; font-weight: 500; margin: 0 16px;">X</a>
+                                        <a href="https://www.linkedin.com/company/policyengine" style="color: #81E6D9; text-decoration: none; font-size: 12px; font-weight: 500; margin: 0 16px;">LinkedIn</a>
+                                        <a href="https://policyengine.org" style="color: #81E6D9; text-decoration: none; font-size: 12px; font-weight: 500; margin: 0 16px;">Website</a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Mailchimp Footer -->
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td align="center" style="font-size: 11px; line-height: 1.6; color: #64748B;">
+                                        This email was sent to <a href="mailto:*|EMAIL|*" style="color: #64748B;">*|EMAIL|*</a><br>
+                                        <a href="*|UNSUB|*" style="color: #64748B;">Unsubscribe</a> &middot; <a href="*|UPDATE_PROFILE|*" style="color: #64748B;">Update preferences</a><br>
+                                        <span style="color: #4B5563;">*|LIST:ADDRESSLINE|*</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                </table>
+
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>
