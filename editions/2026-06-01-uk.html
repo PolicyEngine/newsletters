@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style type="text/css">
+        @media only screen and (max-width: 620px) {
+            .container { width: 100% !important; }
+            .content { padding: 32px 16px !important; }
+            .header { padding: 24px 16px !important; }
+            .footer { padding: 20px !important; }
+            .outer-pad { padding: 20px 6px !important; }
+            .hero-title { font-size: 24px !important; line-height: 1.15 !important; }
+            .hero-pad { padding: 28px 18px 24px 18px !important; }
+            .section-pad { padding: 20px 16px !important; }
+            .col-stack { display: block !important; width: 100% !important; box-sizing: border-box !important; padding: 14px !important; margin-bottom: 10px !important; }
+            .col-spacer { display: none !important; height: 0 !important; width: 0 !important; font-size: 0 !important; line-height: 0 !important; }
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0F1419; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+
+    <!-- Wrapper -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #0F1419;">
+        <tr>
+            <td align="center" class="outer-pad" style="padding: 32px 12px;">
+
+                <!-- Main Container -->
+                <table class="container" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%;">
+
+                    <!-- Header Bar -->
+                    <tr>
+                        <td style="padding: 0 0 24px 0;">
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td>
+                                        <img src="https://raw.githubusercontent.com/PolicyEngine/policyengine-app/master/src/images/logos/policyengine/white.png" alt="PolicyEngine" style="height: 24px; width: auto; opacity: 0.9;">
+                                    </td>
+                                    <td align="right" style="font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: #4FD1C5;">
+                                        UK Update
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Hero Section: Fuel Duty -->
+                    <tr>
+                        <td class="hero-pad" style="background: linear-gradient(165deg, #1D4044 0%, #234E52 40%, #285E61 100%); border-radius: 16px 16px 0 0; padding: 48px 40px 40px 40px; position: relative;">
+                            <!-- Decorative accent line -->
+                            <div style="width: 48px; height: 3px; background: linear-gradient(90deg, #4FD1C5 0%, #81E6D9 100%); margin-bottom: 24px; border-radius: 2px;"></div>
+
+                            <p style="margin: 0 0 12px 0; font-size: 12px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: #81E6D9;">
+                                New Interactive Tool &middot; As seen on ITV Peston
+                            </p>
+
+                            <h1 class="hero-title" style="margin: 0 0 20px 0; font-size: 28px; font-weight: 800; color: #FFFFFF; line-height: 1.15; letter-spacing: -0.02em;">
+                                Cancelling the fuel duty rise
+                            </h1>
+
+                            <p style="margin: 0; font-size: 15px; line-height: 1.65; color: #B2F5EA; font-weight: 400;">
+                                We use policyengine.py to estimate the fiscal cost and household impact of cancelling the fuel-duty rise scheduled in the Autumn Budget 2025 &mdash; the staged unwinding of the 5p cut plus the April 2027 RPI uprating that together take duty to ~60p/L.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Main Content Card -->
+                    <tr>
+                        <td style="background-color: #FFFFFF; padding: 0;">
+
+                            <!-- Fuel Duty findings + CTA -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom: 1px solid #E2E8F0;">
+                                <tr>
+                                    <td class="section-pad" style="padding: 28px 40px;">
+                                        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 16px 0;">
+                                            <tr>
+                                                <td style="padding: 0;">
+                                                    <p style="margin: 0 0 8px 0; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #319795;">Key findings</p>
+                                                    <table width="100%" cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="padding: 4px 0; font-size: 12px; line-height: 1.5; color: #475569; vertical-align: top;" width="16">&bull;</td>
+                                                            <td style="padding: 4px 0 4px 6px; font-size: 12px; line-height: 1.5; color: #475569;">Holding duty flat at 52.95p/L instead of the planned 60.10p/L costs the Treasury <strong style="color: #1D4044;">&pound;3.12bn</strong> in 2027-28, rising to <strong style="color: #1D4044;">&pound;4.42bn</strong> by 2029-30</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="padding: 4px 0; font-size: 12px; line-height: 1.5; color: #475569; vertical-align: top;" width="16">&bull;</td>
+                                                            <td style="padding: 4px 0 4px 6px; font-size: 12px; line-height: 1.5; color: #475569;">The narrower 5p-only framing used in press coverage costs <strong style="color: #1D4044;">&pound;2.18bn</strong> in 2027-28, since it excludes the April 2027 RPI uprating (IFS gives ~&pound;2.3bn/yr)</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="padding: 4px 0; font-size: 12px; line-height: 1.5; color: #475569; vertical-align: top;" width="16">&bull;</td>
+                                                            <td style="padding: 4px 0 4px 6px; font-size: 12px; line-height: 1.5; color: #475569;">The de-facto freeze since 2011-12 has cost <strong style="color: #1D4044;">&pound;124.74bn</strong> in foregone receipts versus an RPI-uprated counterfactual</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="padding: 4px 0; font-size: 12px; line-height: 1.5; color: #475569; vertical-align: top;" width="16">&bull;</td>
+                                                            <td style="padding: 4px 0 4px 6px; font-size: 12px; line-height: 1.5; color: #475569;">The saving skews to higher earners: the richest fifth of households gain ~&pound;165/year against ~&pound;50 for the poorest fifth. No-one loses</td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                        <div style="text-align: center;">
+                                            <a href="https://cancelling-fuel-duty-rise.vercel.app/" style="display: inline-block; padding: 12px 24px; background-color: #319795; color: #FFFFFF; text-decoration: none; font-weight: 600; font-size: 14px; border-radius: 6px;">
+                                                Explore the analysis &rarr;
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- ITV Peston Media Coverage -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom: 1px solid #E2E8F0;">
+                                <tr>
+                                    <td class="section-pad" style="padding: 28px 40px;">
+                                        <p style="margin: 0 0 8px 0; font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #319795;">
+                                            In the news
+                                        </p>
+                                        <p style="margin: 0 0 8px 0; color: #1D4044; font-weight: 700; font-size: 16px;">
+                                            ITV Peston features our fuel duty analysis
+                                        </p>
+                                        <p style="margin: 0 0 16px 0; font-size: 13px; line-height: 1.6; color: #475569;">
+                                            ITV's Peston covered this analysis in the 20 May 2026 episode, discussing the cost of cancelling the planned rise &mdash; including the narrower 5p-only framing used in press coverage and how the savings break down across household income deciles.
+                                        </p>
+                                        <img src="https://raw.githubusercontent.com/PolicyEngine/newsletters/uk-fuel-duty-uc-rebalancing-june-2026/assets/images/fuel-duty-itv-peston.png" alt="ITV Peston segment showing PolicyEngine's average fuel duty savings by household income decile" style="width: 100%; height: auto; border-radius: 8px; border: 1px solid #E2E8F0;">
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- UC Rebalancing -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom: 1px solid #E2E8F0;">
+                                <tr>
+                                    <td class="section-pad" style="padding: 28px 40px;">
+                                        <p style="margin: 0 0 8px 0; font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #319795;">
+                                            New Dashboard
+                                        </p>
+                                        <p style="margin: 0 0 8px 0; color: #1D4044; font-weight: 700; font-size: 16px;">
+                                            Universal Credit rebalancing analysis
+                                        </p>
+                                        <p style="margin: 0 0 16px 0; font-size: 13px; line-height: 1.6; color: #475569;">
+                                            The Universal Credit Act 2025 bundles two changes effective April 2026: an above-CPI uplift to the standard allowance, and a freeze of the monthly health element for new LCWRA claims. We quantify the fiscal and distributional impact across 2026-27 to 2029-30, benchmarked against the DWP Impact Assessment and IFS.
+                                        </p>
+                                        <table width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td style="padding: 4px 0; font-size: 12px; line-height: 1.5; color: #475569; vertical-align: top;" width="16">&bull;</td>
+                                                <td style="padding: 4px 0 4px 6px; font-size: 12px; line-height: 1.5; color: #475569;">The standard allowance uplift gains <strong style="color: #1D4044;">5.99m households &pound;1.67bn</strong>; the new-claimant health element freeze costs <strong style="color: #1D4044;">2.06m households &pound;2.33bn</strong></td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 4px 0; font-size: 12px; line-height: 1.5; color: #475569; vertical-align: top;" width="16">&bull;</td>
+                                                <td style="padding: 4px 0 4px 6px; font-size: 12px; line-height: 1.5; color: #475569;">The two legs largely cancel at the package level (<strong style="color: #1D4044;">net &minus;&pound;0.66bn</strong> in 2029-30), but gainers and losers are different households</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 4px 0; font-size: 12px; line-height: 1.5; color: #475569; vertical-align: top;" width="16">&bull;</td>
+                                                <td style="padding: 4px 0 4px 6px; font-size: 12px; line-height: 1.5; color: #475569;">The SA uplift is progressive &mdash; the poorest decile gains most &mdash; with a net <strong style="color: #1D4044;">&minus;0.05pp</strong> change in the headline poverty rate (~39k fewer people in poverty)</td>
+                                            </tr>
+                                        </table>
+                                        <img src="https://raw.githubusercontent.com/PolicyEngine/newsletters/uk-fuel-duty-uc-rebalancing-june-2026/assets/images/uc-rebalancing.png" alt="UC rebalancing dashboard showing average annual gain from the standard allowance uplift by income decile in 2029-30" style="width: 100%; height: auto; border-radius: 8px; border: 1px solid #E2E8F0; margin: 16px 0;">
+                                        <div style="text-align: center;">
+                                            <a href="https://uc-rebalancing.vercel.app/" style="display: inline-block; padding: 12px 24px; background-color: #319795; color: #FFFFFF; text-decoration: none; font-weight: 600; font-size: 14px; border-radius: 6px;">
+                                                Try the dashboard &rarr;
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Under the Hood -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom: 1px solid #E2E8F0;">
+                                <tr>
+                                    <td class="section-pad" style="padding: 28px 40px;">
+                                        <p style="margin: 0 0 8px 0; font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #2C6496;">
+                                            Under the Hood
+                                        </p>
+                                        <p style="margin: 0 0 20px 0; font-size: 13px; line-height: 1.6; color: #475569;">
+                                            Both dashboards run on <strong style="color: #1D4044;">policyengine.py</strong>, our open-source Python interface to the UK microsimulation model. Each ships its full replication code, so every figure can be reproduced from one microsimulation run.
+                                        </p>
+                                        <table width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td class="col-stack" valign="top" style="width: 48%; background-color: #F7FDFC; border-radius: 8px; padding: 16px;">
+                                                    <p style="margin: 0 0 10px 0; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #2C6496;">
+                                                        Fuel duty &rarr;
+                                                    </p>
+                                                    <table width="100%" cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="padding: 4px 0; font-size: 12px; line-height: 1.5; color: #475569; vertical-align: top;" width="14">&bull;</td>
+                                                            <td style="padding: 4px 0 4px 6px; font-size: 12px; line-height: 1.5; color: #475569;">Receipts series anchored to HMRC out-turns and OBR projections, within ~1% of the March 2026 EFO.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="padding: 4px 0; font-size: 12px; line-height: 1.5; color: #475569; vertical-align: top;" width="14">&bull;</td>
+                                                            <td style="padding: 4px 0 4px 6px; font-size: 12px; line-height: 1.5; color: #475569;">Household savings apply the duty-rate gap to calibrated petrol &amp; diesel litres.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="padding: 4px 0; font-size: 12px; line-height: 1.5; color: #475569; vertical-align: top;" width="14">&bull;</td>
+                                                            <td style="padding: 4px 0 4px 6px; font-size: 12px; line-height: 1.5; color: #475569;">Repo: PolicyEngine/cancelling-fuel-duty-rise.</td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                                <td class="col-spacer" style="width: 4%;">&nbsp;</td>
+                                                <td class="col-stack" valign="top" style="width: 48%; background-color: #F7FDFC; border-radius: 8px; padding: 16px;">
+                                                    <p style="margin: 0 0 10px 0; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #2C6496;">
+                                                        UC rebalancing &rarr;
+                                                    </p>
+                                                    <table width="100%" cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="padding: 4px 0; font-size: 12px; line-height: 1.5; color: #475569; vertical-align: top;" width="14">&bull;</td>
+                                                            <td style="padding: 4px 0 4px 6px; font-size: 12px; line-height: 1.5; color: #475569;">Both legs toggled via a single reform parameter; counterfactual is CPI-only uprating.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="padding: 4px 0; font-size: 12px; line-height: 1.5; color: #475569; vertical-align: top;" width="14">&bull;</td>
+                                                            <td style="padding: 4px 0 4px 6px; font-size: 12px; line-height: 1.5; color: #475569;">A 660-archetype per-claimant grid validated against IFS and DWP IA benchmarks.</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="padding: 4px 0; font-size: 12px; line-height: 1.5; color: #475569; vertical-align: top;" width="14">&bull;</td>
+                                                            <td style="padding: 4px 0 4px 6px; font-size: 12px; line-height: 1.5; color: #475569;">Repo: PolicyEngine/uc-rebalancing.</td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Sign off -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="border-radius: 0 0 16px 16px; overflow: hidden;">
+                                <tr>
+                                    <td style="padding: 32px 40px; background-color: #FFFFFF; border-top: 1px solid #E2E8F0;">
+                                        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #475569;">
+                                            Best wishes,<br>
+                                            <span style="color: #1D4044; font-weight: 600;">The PolicyEngine Team</span>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 32px 0 0 0;">
+                            <!-- Social Links -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 20px;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="https://x.com/ThePolicyEngine" style="color: #81E6D9; text-decoration: none; font-size: 12px; font-weight: 500; margin: 0 16px;">X</a>
+                                        <a href="https://www.linkedin.com/company/policyengine" style="color: #81E6D9; text-decoration: none; font-size: 12px; font-weight: 500; margin: 0 16px;">LinkedIn</a>
+                                        <a href="https://policyengine.org" style="color: #81E6D9; text-decoration: none; font-size: 12px; font-weight: 500; margin: 0 16px;">Website</a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Mailchimp Footer -->
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td align="center" style="font-size: 11px; line-height: 1.6; color: #64748B;">
+                                        This email was sent to <a href="mailto:*|EMAIL|*" style="color: #64748B;">*|EMAIL|*</a><br>
+                                        <a href="*|UNSUB|*" style="color: #64748B;">Unsubscribe</a> · <a href="*|UPDATE_PROFILE|*" style="color: #64748B;">Update preferences</a><br>
+                                        <span style="color: #4B5563;">*|LIST:ADDRESSLINE|*</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                </table>
+
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>
