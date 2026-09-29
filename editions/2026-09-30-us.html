@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <meta name="supported-color-schemes" content="light">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style type="text/css">
+        @media only screen and (max-width: 620px) {
+            .container { width: 100% !important; }
+            .pad { padding-left: 22px !important; padding-right: 22px !important; }
+            .h1 { font-size: 26px !important; line-height: 1.2 !important; }
+            .speaker-cell { display: block !important; width: 100% !important; padding-bottom: 18px !important; }
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #F2F4F7; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+
+    <!-- Preheader (hidden) -->
+    <div style="display: none; max-height: 0; overflow: hidden; font-size: 1px; line-height: 1px; color: #F2F4F7;">
+        We registered a 2025 poverty prediction before the Census release. Here is how it did, and a dashboard to score reforms in your state.
+    </div>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #F2F4F7;">
+        <tr>
+            <td align="center" style="padding: 28px 12px 40px 12px;">
+
+                <table class="container" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; background-color: #FFFFFF; border: 1px solid #E2E8F0;">
+
+                    <!-- Masthead -->
+                    <tr>
+                        <td class="pad" style="padding: 24px 40px 18px 40px; border-bottom: 3px solid #319795;">
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td>
+                                        <img width="106" height="22" src="https://raw.githubusercontent.com/PolicyEngine/policyengine-app-v2/2e38710033e846461217291328a3748d1cd45de7/app/public/assets/logos/policyengine/teal.png" alt="PolicyEngine" style="width: 106px; height: 22px; display: block;">
+                                    </td>
+                                    <td align="right" style="font-size: 12px; color: #64748B; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                                        September 30, 2026 &middot; <a href="*|ARCHIVE|*" style="color: #319795; text-decoration: none;">View in browser</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Hero -->
+                    <tr>
+                        <td class="pad" style="padding: 36px 40px 8px 40px;">
+                            <p style="margin: 0 0 12px 0; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #2C7A7B;">
+                                2025 Supplemental Poverty Measure
+                            </p>
+                            <h1 class="h1" style="margin: 0 0 16px 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 30px; font-weight: 700; line-height: 1.2; color: #1D4044; letter-spacing: -0.01em;">
+                                Our 2025 poverty prediction, graded
+                            </h1>
+                            <p style="margin: 0 0 14px 0; font-size: 15px; line-height: 1.6; color: #475569;">
+                                On September 11, four days before the Census Bureau&rsquo;s release, we registered a prediction of 2025 Supplemental Poverty Measure rates. For all people we came within 0.1 point: 13.2 percent against Census&rsquo;s 13.1. We missed by 0.9 points for children and 0.8 points for people 65 and over, in opposite directions.
+                            </p>
+                            <p style="margin: 0 0 14px 0; font-size: 15px; line-height: 1.6; color: #475569;">
+                                We traced the senior miss, and part of the child miss, to how the model carries 2024 incomes into 2025. It grew each person&rsquo;s Social Security, pensions and self-employment income at the rate of a national total, not at the rate recipients saw in the survey. Rerunning 2025 with rates closer to the survey&rsquo;s removes most of the miss for people 65 and over and about a third of the miss for children.
+                            </p>
+                            <img width="520" src="https://raw.githubusercontent.com/PolicyEngine/newsletters/e51609a51a3ee8213f3855025f142560e8e3dc65/assets/images/spm-2025-prediction-graded.png" alt="Chart: 2025 SPM poverty rates. PolicyEngine predicted 13.2 percent for all people, 14.3 for children and 14.6 for people 65 and over; Census reported 13.1, 13.4 and 15.4." style="width: 100%; max-width: 520px; height: auto; display: block; border-radius: 6px;">
+                            <p style="margin: 20px 0 0 0;"><a href="https://policyengine.org/us/research/2025-spm-poverty-prediction" style="display: inline-block; padding: 11px 20px; background-color: #319795; color: #FFFFFF; text-decoration: none; font-weight: 700; font-size: 14px; border-radius: 4px;">Read the grade</a></p>
+                            <p style="margin: 18px 0 0 0; font-size: 13px; line-height: 1.6; color: #64748B;">
+                                Also in this issue: <a href="#dashboard" style="color: #319795; text-decoration: none; font-weight: 500;">Child Poverty Impact Dashboard</a> &middot; <a href="#recording" style="color: #319795; text-decoration: none; font-weight: 500;">Webinar recording</a> &middot; <a href="#spm" style="color: #319795; text-decoration: none; font-weight: 500;">What Census reported</a> &middot; <a href="#model" style="color: #319795; text-decoration: none; font-weight: 500;">In the model</a>
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Dashboard (action item) -->
+                    <tr>
+                        <td class="pad" style="padding: 28px 40px 0 40px;">
+                            <a name="dashboard"></a>
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="background-color: #E6FFFA; border-left: 3px solid #319795; padding: 18px 20px;">
+                                        <p style="margin: 0 0 6px 0; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #2C7A7B;">Child Poverty Impact Dashboard</p>
+                                        <h2 style="margin: 0 0 10px 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 20px; font-weight: 600; line-height: 1.3; color: #1D4044;">Score a reform in your state</h2>
+                                        <p style="margin: 0 0 14px 0; font-size: 15px; line-height: 1.6; color: #475569;">
+                                            Pick a state, configure state and federal reforms, and see the effect on child poverty, state and federal budgets, income deciles and congressional districts. Build a state Child Tax Credit or EITC, change the dependent exemption, add a child allowance or a SNAP expansion, or test a federal proposal such as the American Family Act. Every result has a shareable link.
+                                        </p>
+                                        <p style="margin: 0;"><a href="https://policyengine.org/us/child-poverty-impact-dashboard" style="display: inline-block; padding: 11px 20px; background-color: #319795; color: #FFFFFF; text-decoration: none; font-weight: 700; font-size: 14px; border-radius: 4px;">Open the dashboard</a></p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Recording -->
+                    <tr>
+                        <td class="pad" style="padding: 28px 40px 0 40px;">
+                            <a name="recording"></a>
+                            <p style="margin: 0 0 6px 0; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #2C7A7B;">Webinar recording</p>
+                            <h2 style="margin: 0 0 10px 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 20px; font-weight: 600; line-height: 1.3; color: #1D4044;">The new child poverty numbers, and how state reforms would affect them</h2>
+                            <p style="margin: 0 0 14px 0; font-size: 15px; line-height: 1.6; color: #475569;">
+                                On the afternoon of the Census release, Cynthia Osborne (Prenatal-to-3 Policy Impact Center, Vanderbilt) and Joshua McCabe (Niskanen Center) gave their read on the new numbers, and David Trimmer built a New York reform package live in the dashboard. <a href="https://youtu.be/TKf1D13FZiQ" style="color: #319795; font-weight: 500; text-decoration: none;">Watch the recording</a> or <a href="https://policyengine.org/slides/cpid-webinar-2026" style="color: #319795; font-weight: 500; text-decoration: none;">read the slides</a>.
+                            </p>
+                            <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #475569;">
+                                New from our guests: the <a href="https://pn3policy.org/pn-3-state-policy-roadmap-2026/" style="color: #319795; font-weight: 500; text-decoration: none;">2026 Prenatal-to-3 State Policy Roadmap</a>, on what every state did over the past year on evidence-based policies for infants and toddlers, and Niskanen&rsquo;s <a href="https://www.niskanencenter.org/family-benefits-in-america-2025-report-card/" style="color: #319795; font-weight: 500; text-decoration: none;">Family benefits in America 2025 report card</a>, on how TANF, SNAP, and federal and state EITCs and CTCs add up for families with young children in each state. Its TANF figures come from PolicyEngine.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- What Census reported -->
+                    <tr>
+                        <td class="pad" style="padding: 28px 40px 0 40px;">
+                            <a name="spm"></a>
+                            <p style="margin: 0 0 6px 0; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #2C7A7B;">What Census reported</p>
+                            <h2 style="margin: 0 0 10px 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 20px; font-weight: 600; line-height: 1.3; color: #1D4044;">SPM thresholds rose faster than prices</h2>
+                            <p style="margin: 0 0 14px 0; font-size: 15px; line-height: 1.6; color: #475569;">
+                                Census put SPM poverty at 13.1 percent in 2025, up 0.1 point, a change it does not count as statistically significant: 13.4 percent for children and 15.4 percent for people 65 and over. The official poverty rate fell 0.5 points to 10.2 percent. The SPM thresholds rose 4.4 to 6.3 percent depending on housing tenure, against 2.6 percent for consumer prices. At 2024 thresholds grown with inflation, the 2025 SPM rate would have been 12.3 percent, down 0.7 points.
+                            </p>
+                            <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #475569;">
+                                <a href="https://policyengine.org/us/research/2025-supplemental-poverty-measure" style="color: #319795; font-weight: 500; text-decoration: none;">Read the analysis</a>, with the rates by age, housing tenure and state, or compute the threshold for any family and area with the <a href="https://policyengine.org/us/spm-calculator" style="color: #319795; font-weight: 500; text-decoration: none;">SPM threshold calculator</a>.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Model coverage -->
+                    <tr>
+                        <td class="pad" style="padding: 28px 40px 0 40px;">
+                            <a name="model"></a>
+                            <p style="margin: 0 0 6px 0; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #2C7A7B;">In the model</p>
+                            <p style="margin: 0 0 14px 0; font-size: 15px; line-height: 1.6; color: #475569;">
+                                The model carries USDA&rsquo;s fiscal year 2027 SNAP allotments, deductions and asset limits, which take effect in October. Child care assistance follows each state&rsquo;s rules for children under court supervision in 34 states and DC, and California&rsquo;s County Children&rsquo;s Health Initiative Program covers children in San Francisco, San Mateo and Santa Clara counties.
+                            </p>
+                            <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #475569;">
+                                We also corrected how SNAP treats child support payments, which 46 jurisdictions had wrong for 2026, and counted IRA and 401(k) distributions in state retirement income exclusions in 20 states. That is 81 policyengine-us releases since our September 8 newsletter.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Sign off -->
+                    <tr>
+                        <td class="pad" style="padding: 32px 40px 36px 40px;">
+                            <p style="margin: 0 0 14px 0; font-size: 15px; line-height: 1.6; color: #475569;">If there is a reform you want scored for your state, reply to this email.</p>
+                            <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #475569;">Best wishes,<br><span style="color: #1D4044; font-weight: 700;">The PolicyEngine Team</span></p>
+                        </td>
+                    </tr>
+
+                </table>
+
+                <!-- Footer -->
+                <table class="container" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%;">
+                    <tr>
+                        <td align="center" style="padding: 22px 20px 0 20px; font-size: 12px; line-height: 1.7; color: #64748B;">
+                            <a href="https://x.com/ThePolicyEngine" style="color: #319795; text-decoration: none; margin: 0 10px;">X</a>
+                            <a href="https://www.linkedin.com/company/thepolicyengine" style="color: #319795; text-decoration: none; margin: 0 10px;">LinkedIn</a>
+                            <a href="https://policyengine.org" style="color: #319795; text-decoration: none; margin: 0 10px;">policyengine.org</a>
+                            <a href="*|FORWARD|*" style="color: #319795; text-decoration: none; margin: 0 10px;">Forward to a colleague</a>
+                            <br>
+                            This email was sent to <a href="mailto:*|EMAIL|*" style="color: #64748B;">*|EMAIL|*</a>
+                            &middot; <a href="*|UNSUB|*" style="color: #64748B;">Unsubscribe</a>
+                            &middot; <a href="*|UPDATE_PROFILE|*" style="color: #64748B;">Update preferences</a><br>
+                            <span style="color: #94A3B8;">*|LIST:ADDRESSLINE|*</span>
+                        </td>
+                    </tr>
+                </table>
+
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>
