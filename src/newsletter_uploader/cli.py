@@ -5,6 +5,7 @@ from pathlib import Path
 
 import click
 
+from . import comparables
 from .audience import AudienceType
 from .mailchimp_client import MailchimpClient
 from .uploader import NewsletterUploader
@@ -78,6 +79,19 @@ def main(html_file, audience, subject, preview, title, api_key, list_id, campaig
             err=True,
         )
         sys.exit(1)
+
+    # Fresh comparables before a push (Max, 2026-10-21): every analysis an
+    # edition dated on or after the cutover links needs a recent comparables
+    # search in the scorecard (newsletter_uploader/comparables.py).
+    due, problems = comparables.run_check([html_file])
+    if problems:
+        click.echo("❌ Comparables are not fresh for this edition:", err=True)
+        for problem in problems:
+            click.echo(f"   {problem}", err=True)
+        click.echo(comparables.HOW_TO_FIX, err=True)
+        sys.exit(1)
+    if due:
+        click.echo("✓ Comparables are fresh for every analysis this edition links")
 
     # Create client and uploader
     if campaign_id:

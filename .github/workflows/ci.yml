@@ -17,6 +17,30 @@ jobs:
           chmod +x scripts/lint-newsletters.sh
           ./scripts/lint-newsletters.sh
 
+  comparables:
+    # Max, 2026-10-21: "even if we've already published something, we should
+    # do a fresh comp review before big pushes like newsletters". Every
+    # policyengine.org analysis an edition dated on or after the cutover links
+    # needs a comparables search in PolicyEngine/policyengine-scorecard within
+    # the scorecard's promotion window (src/newsletter_uploader/comparables.py).
+    # It downloads the scorecard index and app-v2's registries only when such
+    # an edition exists, and fails if it cannot read them.
+    name: Fresh comparables for promoted analyses
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install
+        run: pip install -e .
+
+      - name: Every analysis an edition links has a fresh comparables search
+        run: python -m newsletter_uploader.comparables editions
+
   test:
     runs-on: ubuntu-latest
     strategy:

@@ -46,6 +46,14 @@ All newsletter HTML files follow this pattern:
    - Responsive table layout in footer (Mailchimp CAN-SPAM compliance)
    - Mailchimp merge tags in footer
    - External assets use full URLs (no relative paths)
+4. **Fresh comparables before sending (Max, 2026-10-21).** Every policyengine.org
+   analysis the edition links needs a comparables search recorded in
+   PolicyEngine/policyengine-scorecard within the scorecard's promotion window before
+   the edition's date (`python -m newsletter_uploader.comparables editions/<file>`).
+   For any it lists, run the comparables review with search kind `prepromotion` (the
+   PolicyEngine plugin's `policyengine-comparables-review` skill) first. CI and
+   `upload-newsletter` refuse an edition dated on or after the cutover that fails it.
+   The same applies to the social posts kept beside an edition.
 
 ## Email Compatibility
 
