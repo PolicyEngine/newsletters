@@ -17,7 +17,13 @@ This is a wrapper around the `upload-newsletter` command that:
 
 1. Validates the HTML file exists
 2. Prompts for required fields if missing
-3. Runs the upload command
+3. Runs the upload command, which first checks that every policyengine.org analysis
+   the edition links has a fresh comparables search in the scorecard, judged on the
+   later of the edition's date and today (`src/newsletter_uploader/comparables.py`), and
+   refuses to upload otherwise, or when the file name does not start with its date. Fix
+   it by running the comparables review (search kind `prepromotion`), never by renaming
+   or re-dating the file. To change a draft already uploaded, run the same command with
+   `--campaign-id`; it runs the same check.
 4. Shows the Mailchimp edit URL
 
 ## Arguments

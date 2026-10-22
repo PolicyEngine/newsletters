@@ -31,7 +31,22 @@ Create a new newsletter HTML file from PolicyEngine research posts and optional 
    - Add research sections
    - Add footer with Mailchimp merge tags
 
-4. **Show result**:
+4. **Check comparables are fresh** (required before sending, Max 2026-10-21):
+   - Name the file for its send date, then run
+     `python -m newsletter_uploader.comparables --require-dates editions/<new file>`.
+     Every policyengine.org analysis the edition links needs a comparables search in
+     PolicyEngine/policyengine-scorecard on the send date or in the scorecard's
+     promotion window before it (7 days by default, counting both ends), against the
+     results the analysis reads now, with no gap still pending.
+   - For each analysis it lists, run the comparables review with search kind
+     `prepromotion` (`/comparables-review` and the `policyengine-comparables-review`
+     skill in the PolicyEngine plugin), merge the scorecard PR, and check again.
+     CI and `upload-newsletter` both refuse an edition that fails this.
+   - The check confirms the search is fresh and every gap over the threshold has a
+     written cause; it does not put the comparable in the edition. Whether an edition
+     shows a comparable beside our figure is not yet decided.
+
+5. **Show result**:
    - Path to generated file
    - Preview of content
    - Next steps: upload with `upload-newsletter` command

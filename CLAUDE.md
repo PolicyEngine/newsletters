@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is a simple newsletter repository containing HTML email templates for PolicyEngine's Mailchimp campaigns. No build tools, testing frameworks, or development servers are needed - this is pure HTML/CSS.
+This repository holds the HTML email templates for PolicyEngine's Mailchimp campaigns, and a Python package (`newsletter_uploader`) that uploads them and checks, before a send, that every analysis an edition links has a fresh comparables search. The editions themselves are plain HTML/CSS with no build step.
 
 ## Repository Structure
 
@@ -46,6 +46,20 @@ All newsletter HTML files follow this pattern:
    - Responsive table layout in footer (Mailchimp CAN-SPAM compliance)
    - Mailchimp merge tags in footer
    - External assets use full URLs (no relative paths)
+4. **Fresh comparables before sending (Max, 2026-10-21).** Every policyengine.org
+   analysis the edition links needs a comparables search recorded in
+   PolicyEngine/policyengine-scorecard on the send date or in the scorecard's promotion
+   window before it (7 days by default, counting both ends), against the results the
+   analysis reads now, with no gap still pending
+   (`python -m newsletter_uploader.comparables --require-dates editions/<file>`).
+   For any it lists, run the comparables review with search kind `prepromotion` (the
+   PolicyEngine plugin's `policyengine-comparables-review` skill) first. Name the file
+   for its send date: CI checks the editions a change adds or modifies on their dates,
+   and `upload-newsletter` refuses an undated file and judges the edition on the later
+   of its date and the day you upload. The same applies to the social posts kept beside
+   an edition, which live in `editions/` as `<date>-<audience>-social.md` (CI fails a social
+   post anywhere else). The check confirms the search is fresh; it does not put the comparable
+   in the edition.
 
 ## Email Compatibility
 
@@ -82,7 +96,7 @@ https://raw.githubusercontent.com/PolicyEngine/newsletters/branch-name/assets/im
 
 ## File Naming Conventions
 
-- Newsletter editions: `YYYY-MM-DD.html` (e.g., `2024-11-04.html`)
+- Newsletter editions: `YYYY-MM-DD-{audience}.html` or `YYYY-MM-DD.html` (e.g., `2024-11-04.html`); the date at the start is the send date, and the comparables check reads it
 - Images: Descriptive names in `assets/images/`
 
 ## Configuration
@@ -93,7 +107,7 @@ https://raw.githubusercontent.com/PolicyEngine/newsletters/branch-name/assets/im
 
 ## Uploading to Mailchimp
 
-This repo includes a Python package (`newsletter_uploader`) with full test coverage.
+This repo includes a Python package (`newsletter_uploader`), tested with pytest.
 
 ### Installation
 
@@ -133,34 +147,32 @@ The command creates a **draft campaign** (not sent) that you can review, test, a
 
 ### Updating Existing Drafts
 
-**IMPORTANT:** When making changes to a newsletter that has already been uploaded to Mailchimp, **update the existing campaign** instead of creating a new one. Use the Mailchimp API to update the campaign content:
+**IMPORTANT:** When making changes to a newsletter that has already been uploaded to Mailchimp, **update the existing campaign** instead of creating a new one, with the same command and the campaign's ID. It runs the comparables check (step 4 above) before it touches Mailchimp, so an analysis added to a draft is checked too:
 
+```bash
+upload-newsletter editions/2025-10-01-uk.html \
+  --campaign-id <existing-campaign-id> \
+  --subject "UK Happy Hour Tomorrow + New Research" \
+  --preview "Join us for drinks and discussion"
+```
+
+Do not put HTML to the campaign's content endpoint directly: that skips the check.
+
+To delete an accidentally created duplicate campaign:
 ```python
 import requests
 
 API_KEY = "your-api-key"
 SERVER = "us5"  # from API key suffix
-CAMPAIGN_ID = "existing-campaign-id"
-
-url = f"https://{SERVER}.api.mailchimp.com/3.0/campaigns/{CAMPAIGN_ID}/content"
-auth = ("anystring", API_KEY)
-
-with open("editions/your-newsletter.html", "r") as f:
-    html_content = f.read()
-
-response = requests.put(url, auth=auth, json={"html": html_content})
-```
-
-To delete an accidentally created duplicate campaign:
-```python
+CAMPAIGN_ID = "duplicate-campaign-id"
 url = f"https://{SERVER}.api.mailchimp.com/3.0/campaigns/{CAMPAIGN_ID}"
-requests.delete(url, auth=auth)
+requests.delete(url, auth=("anystring", API_KEY))
 ```
 
 ### Development
 
 ```bash
-# Run tests (93% coverage)
+# Run tests (with coverage: pytest --cov=newsletter_uploader)
 pytest -v
 
 # Format and lint
@@ -170,7 +182,7 @@ ruff check src/ tests/
 
 The package is structured with:
 - `src/newsletter_uploader/` - Core package modules
-- `tests/` - Comprehensive test suite
+- `tests/` - pytest suite
 - CI runs on GitHub Actions for Python 3.8-3.11
 
 ## Claude Code Automations

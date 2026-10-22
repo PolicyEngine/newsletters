@@ -17,6 +17,65 @@ jobs:
           chmod +x scripts/lint-newsletters.sh
           ./scripts/lint-newsletters.sh
 
+  comparables:
+    # Max, 2026-10-21: "even if we've already published something, we should
+    # do a fresh comp review before big pushes like newsletters". Every
+    # policyengine.org analysis an edition links needs a comparables search in
+    # PolicyEngine/policyengine-scorecard within the scorecard's promotion
+    # window before the edition's date (src/newsletter_uploader/comparables.py).
+    # It checks the editions this change adds or modifies (on a push, the
+    # pushed range), so an edition already sent is not re-judged against
+    # later data; each must be named for its date. It downloads the scorecard
+    # index and app-v2's registries only when such an edition is due, and
+    # fails if it cannot read them.
+    name: Fresh comparables for promoted analyses
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install
+        run: pip install -e .
+
+      - name: Every analysis a changed edition links has a fresh comparables search
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          # reads each source at the commit its main branch points to
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # The commit to compare with: the pull request's base, or main before
+          # the push. A new branch's first push has no such commit, so its
+          # files are compared with the empty tree. A base the checkout
+          # cannot read fails the job rather than passing with nothing checked.
+          if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            BASE_SHA=$(git hash-object -t tree /dev/null)
+          elif ! git cat-file -e "$BASE_SHA^{commit}"; then
+            echo "::error::cannot read the base commit $BASE_SHA"
+            exit 1
+          fi
+          git diff --name-only --diff-filter=AMR "$BASE_SHA" HEAD > "$RUNNER_TEMP/all-changed.txt"
+          # Social posts live in editions/, named <date>-<audience>-social.md;
+          # one anywhere else could not be checked.
+          if grep -iE '(^|/)[^/]*social[^/]*\.md$' "$RUNNER_TEMP/all-changed.txt" | grep -v '^editions/' > "$RUNNER_TEMP/misplaced.txt"; then
+            echo "::error::social posts go in editions/ as <date>-<audience>-social.md, so their comparables can be checked:"
+            cat "$RUNNER_TEMP/misplaced.txt"
+            exit 1
+          fi
+          grep -iE '^editions/.*\.(html?|md)$' "$RUNNER_TEMP/all-changed.txt" > "$RUNNER_TEMP/changed.txt" || true
+          echo "Changed editions:"; cat "$RUNNER_TEMP/changed.txt"
+          if [ ! -s "$RUNNER_TEMP/changed.txt" ]; then
+            echo "No edition changed; nothing to check."
+            exit 0
+          fi
+          xargs -d '\n' python -m newsletter_uploader.comparables --require-dates < "$RUNNER_TEMP/changed.txt"
+
   test:
     runs-on: ubuntu-latest
     strategy:
