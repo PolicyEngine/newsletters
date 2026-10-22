@@ -81,9 +81,12 @@ def main(html_file, audience, subject, preview, title, api_key, list_id, campaig
         sys.exit(1)
 
     # Fresh comparables before a push (Max, 2026-10-21): every analysis an
-    # edition dated on or after the cutover links needs a recent comparables
-    # search in the scorecard (newsletter_uploader/comparables.py).
-    due, problems = comparables.run_check([html_file])
+    # edition links needs a recent comparables search in the scorecard,
+    # judged on the later of the edition's date and today
+    # (newsletter_uploader/comparables.py). An undated file is refused.
+    due, problems = comparables.run_check(
+        [html_file], today=comparables.today_utc(), require_dates=True
+    )
     if problems:
         click.echo("❌ Comparables are not fresh for this edition:", err=True)
         for problem in problems:
@@ -111,7 +114,7 @@ def main(html_file, audience, subject, preview, title, api_key, list_id, campaig
 
         # Upload newsletter
         click.echo("Reading HTML file...")
-        html_content = html_file.read_text()
+        html_content = html_file.read_text(encoding="utf-8")
         click.echo(f"✓ Read {len(html_content)} characters")
 
         if campaign_id:

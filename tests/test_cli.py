@@ -15,7 +15,7 @@ def runner():
 @pytest.fixture
 def html_file(tmp_path):
     """Create a test HTML file."""
-    html_path = tmp_path / "test.html"
+    html_path = tmp_path / "2026-01-01-test.html"
     html_path.write_text("<html><body>Test</body></html>")
     return html_path
 

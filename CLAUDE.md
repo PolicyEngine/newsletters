@@ -48,12 +48,17 @@ All newsletter HTML files follow this pattern:
    - External assets use full URLs (no relative paths)
 4. **Fresh comparables before sending (Max, 2026-10-21).** Every policyengine.org
    analysis the edition links needs a comparables search recorded in
-   PolicyEngine/policyengine-scorecard within the scorecard's promotion window before
-   the edition's date (`python -m newsletter_uploader.comparables editions/<file>`).
+   PolicyEngine/policyengine-scorecard on the send date or in the scorecard's promotion
+   window before it (7 days by default, counting both ends), against the results the
+   analysis reads now, with no gap still pending
+   (`python -m newsletter_uploader.comparables --require-dates editions/<file>`).
    For any it lists, run the comparables review with search kind `prepromotion` (the
-   PolicyEngine plugin's `policyengine-comparables-review` skill) first. CI and
-   `upload-newsletter` refuse an edition dated on or after the cutover that fails it.
-   The same applies to the social posts kept beside an edition.
+   PolicyEngine plugin's `policyengine-comparables-review` skill) first. Name the file
+   for its send date: CI checks the editions a change adds or modifies on their dates,
+   and `upload-newsletter` refuses an undated file and judges the edition on the later
+   of its date and the day you upload. The same applies to the social posts kept beside
+   an edition. The check confirms the search is fresh; it does not put the comparable
+   in the edition.
 
 ## Email Compatibility
 
@@ -90,7 +95,7 @@ https://raw.githubusercontent.com/PolicyEngine/newsletters/branch-name/assets/im
 
 ## File Naming Conventions
 
-- Newsletter editions: `YYYY-MM-DD.html` (e.g., `2024-11-04.html`)
+- Newsletter editions: `YYYY-MM-DD-{audience}.html` or `YYYY-MM-DD.html` (e.g., `2024-11-04.html`); the date at the start is the send date, and the comparables check reads it
 - Images: Descriptive names in `assets/images/`
 
 ## Configuration
@@ -141,28 +146,25 @@ The command creates a **draft campaign** (not sent) that you can review, test, a
 
 ### Updating Existing Drafts
 
-**IMPORTANT:** When making changes to a newsletter that has already been uploaded to Mailchimp, **update the existing campaign** instead of creating a new one. Use the Mailchimp API to update the campaign content:
+**IMPORTANT:** When making changes to a newsletter that has already been uploaded to Mailchimp, **update the existing campaign** instead of creating a new one, with the same command and the campaign's ID. It runs the comparables check (step 4 above) before it touches Mailchimp, so an analysis added to a draft is checked too:
 
+```bash
+upload-newsletter editions/2025-10-01-uk.html \
+  --campaign-id <existing-campaign-id> \
+  --subject "UK Happy Hour Tomorrow + New Research" \
+  --preview "Join us for drinks and discussion"
+```
+
+Do not put HTML to the campaign's content endpoint directly: that skips the check.
+
+To delete an accidentally created duplicate campaign:
 ```python
 import requests
 
 API_KEY = "your-api-key"
 SERVER = "us5"  # from API key suffix
-CAMPAIGN_ID = "existing-campaign-id"
-
-url = f"https://{SERVER}.api.mailchimp.com/3.0/campaigns/{CAMPAIGN_ID}/content"
-auth = ("anystring", API_KEY)
-
-with open("editions/your-newsletter.html", "r") as f:
-    html_content = f.read()
-
-response = requests.put(url, auth=auth, json={"html": html_content})
-```
-
-To delete an accidentally created duplicate campaign:
-```python
 url = f"https://{SERVER}.api.mailchimp.com/3.0/campaigns/{CAMPAIGN_ID}"
-requests.delete(url, auth=auth)
+requests.delete(url, auth=("anystring", API_KEY))
 ```
 
 ### Development

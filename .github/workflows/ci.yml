@@ -20,15 +20,20 @@ jobs:
   comparables:
     # Max, 2026-10-21: "even if we've already published something, we should
     # do a fresh comp review before big pushes like newsletters". Every
-    # policyengine.org analysis an edition dated on or after the cutover links
-    # needs a comparables search in PolicyEngine/policyengine-scorecard within
-    # the scorecard's promotion window (src/newsletter_uploader/comparables.py).
-    # It downloads the scorecard index and app-v2's registries only when such
-    # an edition exists, and fails if it cannot read them.
+    # policyengine.org analysis an edition links needs a comparables search in
+    # PolicyEngine/policyengine-scorecard within the scorecard's promotion
+    # window before the edition's date (src/newsletter_uploader/comparables.py).
+    # It checks the editions this change adds or modifies (on a push, the
+    # pushed range), so an edition already sent is not re-judged against
+    # later data; each must be named for its date. It downloads the scorecard
+    # index and app-v2's registries only when such an edition is due, and
+    # fails if it cannot read them.
     name: Fresh comparables for promoted analyses
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -38,8 +43,21 @@ jobs:
       - name: Install
         run: pip install -e .
 
-      - name: Every analysis an edition links has a fresh comparables search
-        run: python -m newsletter_uploader.comparables editions
+      - name: Every analysis a changed edition links has a fresh comparables search
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            BASE_SHA=$(git rev-list --max-parents=0 HEAD | tail -1)
+          fi
+          git diff --name-only --diff-filter=AMR "$BASE_SHA" HEAD -- 'editions/**' 'social-posts*.md' \
+            | grep -iE '\.(html?|md)$' > "$RUNNER_TEMP/changed.txt" || true
+          echo "Changed editions:"; cat "$RUNNER_TEMP/changed.txt"
+          if [ ! -s "$RUNNER_TEMP/changed.txt" ]; then
+            echo "No edition changed; nothing to check."
+            exit 0
+          fi
+          xargs -d '\n' python -m newsletter_uploader.comparables --require-dates < "$RUNNER_TEMP/changed.txt"
 
   test:
     runs-on: ubuntu-latest
