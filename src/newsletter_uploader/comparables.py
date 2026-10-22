@@ -20,22 +20,28 @@ What counts as an analysis is decided by policyengine-app-v2's registries and
 the rules the scorecard's index publishes (``entry_rules``): an app listed
 with research or tagged ``policy``, or any post, unless it is a post that is
 plainly not an analysis (an event, an announcement) and declares
-``no_estimate``. A link is recognised in any common form: with or without a
-scheme or ``www.``, in any case, HTML-escaped or percent-encoded, through
-``/research/`` or ``/blog/``, with a dated post slug, through one of the
-site's redirects to an analysis (``ALIASES``), or to the app's own host.
-Tracking links and link shorteners are refused, because where they lead
-cannot be checked.
+``no_estimate``. Where a link leads is read from policyengine-app-v2's route
+map (``website/src/data/analysisRoutes.json``: every path, redirect and
+deployment host that leads to a research app, built from the site's own
+routing) and from the scorecard's records (each analysis's page and the
+``deployments`` it is also served from, which keep a dashboard taken off the
+site from being promoted through its own URL). A link is recognised in any
+common form: with or without a scheme or ``www.``, in any case, HTML-escaped
+or percent-encoded, with dot segments or a trailing dot on the host, through
+``/research/`` or ``/blog/`` or a dated post slug. Tracking links and link
+shorteners are refused, because where they lead cannot be checked.
 
 An edition is a file whose name starts with its date, ``YYYY-MM-DD``
 (``editions/2026-11-02-uk.html``, ``editions/2026-11-02.html``, and the
-``.md`` social posts beside them). ``upload-newsletter`` refuses an undated
-file and judges freshness on the later of the edition's date and the day it
-runs; CI checks the editions a change adds or modifies, on their dates. Only
-pushes on or after ``PROMOTION_CUTOVER_DATE`` are checked. The registries and
-the scorecard's index are downloaded from their repositories' main branches
-only when an edition is due; a failed download, or an index of the wrong
-shape, fails the check.
+``.md`` social posts beside them, ``editions/<date>-<audience>-social.md``).
+``upload-newsletter`` refuses an undated file and judges freshness on the
+later of the edition's date and the day it runs; CI checks the editions a
+change adds or modifies, on their dates. Only pushes on or after
+``PROMOTION_CUTOVER_DATE`` are checked. The registries, the route map and the
+scorecard's index are read from their repositories' main branches, at the
+commit main points to when the check runs (so a cached copy is never read),
+only when an edition is due; a failed download, or data of the wrong shape,
+fails the check.
 
     python -m newsletter_uploader.comparables editions
     python -m newsletter_uploader.comparables --require-dates editions/<file>
@@ -50,48 +56,52 @@ import argparse
 import datetime as dt
 import html
 import json
+import os
+import posixpath
 import re
 import sys
 import time
 import urllib.parse
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Dict, List, Optional, Sequence, Set, Tuple
 
 import requests
 
 PROMOTION_CUTOVER_DATE = "2026-10-26"
 
+APP_V2 = "PolicyEngine/policyengine-app-v2"
+SCORECARD = "PolicyEngine/policyengine-scorecard"
 APPS_URL = (
-    "https://raw.githubusercontent.com/PolicyEngine/policyengine-app-v2/main/"
-    "app/src/data/apps/apps.json"
+    f"https://raw.githubusercontent.com/{APP_V2}/main/app/src/data/apps/apps.json"
 )
 POSTS_URL = (
-    "https://raw.githubusercontent.com/PolicyEngine/policyengine-app-v2/main/"
-    "app/src/data/posts/posts.json"
+    f"https://raw.githubusercontent.com/{APP_V2}/main/app/src/data/posts/posts.json"
+)
+ROUTES_URL = (
+    f"https://raw.githubusercontent.com/{APP_V2}/main/"
+    "website/src/data/analysisRoutes.json"
 )
 INDEX_URL = (
-    "https://raw.githubusercontent.com/PolicyEngine/policyengine-scorecard/main/"
-    "data/comparables/index.json"
+    f"https://raw.githubusercontent.com/{SCORECARD}/main/data/comparables/index.json"
 )
 INDEX_SCHEMA = "comparables/index/1"
+ROUTES_SCHEMA = "analysis-routes/1"
 # The scorecard's policy keeps its window in this range too.
 MAX_WINDOW_DAYS = 90
+STATUSES = ("comparable", "constructed", "concept_mismatch", "pe_gap", "pending")
 
 EDITION_SUFFIXES = (".html", ".htm", ".md")
+SITE_HOST = "policyengine.org"
 _EDITION = re.compile(r"^(\d{4}-\d{2}-\d{2})(?=[-_.]|$)")
 _DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 _DATED_SLUG = re.compile(r"^\d{4}-\d{2}-\d{2}-(.+)$")
-_SITE = re.compile(
-    r"(?<![a-z0-9.-])(?:https?:)?(?://)?(?:www\.)?policyengine\.org(?::\d+)?"
-    r"((?:/+[a-z0-9_.~%-]*)*)",
+# a host (a trailing dot allowed), with or without a scheme, and its path
+_LINK = re.compile(
+    r"(?<![a-z0-9@.-])(?:https?:)?(?://)?"
+    r"((?:[a-z0-9-]+\.)+[a-z]{2,}\.?)(?::\d+)?(/[A-Za-z0-9/._~%-]*)?",
     re.IGNORECASE,
 )
-_URL = re.compile(
-    r"(?<![a-z0-9.@-])(?:https?:)?(?://)?([a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,})"
-    r"(?::\d+)?(/[^\s\"'<>)\]]*)?",
-    re.IGNORECASE,
-)
-_SEGMENT = re.compile(r"^[a-z0-9_-]+$")
+_RAW_MAIN = re.compile(r"^https://raw\.githubusercontent\.com/([^/]+/[^/]+)/main/(.+)$")
 # Links whose destination cannot be read from the link itself: Mailchimp's
 # click tracking (its profile and unsubscribe links are fine) and shorteners.
 TRACKING = (("list-manage.com", "/track/"),)
@@ -107,24 +117,10 @@ UNCHECKABLE_HOSTS = (
     "cutt.ly",
 )
 
-# Redirects on policyengine.org that land on an analysis (policyengine-app-v2
-# website/next.config.ts, redirects()). Each target must be a research entry
-# in the registry the check downloads, or the check fails: the table is then
-# stale.
-ALIASES: Dict[Tuple[str, str], Tuple[str, str]] = {
-    ("us", "obbba-household-explorer"): ("us", "obbba-households"),
-    ("us", "obbba-household-by-household"): ("us", "obbba-households"),
-    ("us", "obbba-scatter"): ("us", "obbba-households"),
-    ("us", "obba-household-explorer"): ("us", "obbba-households"),
-    ("us", "ob3-households"): ("us", "obbba-households"),
-    ("us", "research/obbba-household-explorer"): ("us", "obbba-households"),
-    ("us", "research/obbba-household-by-household"): ("us", "obbba-households"),
-    ("us", "aca-reforms-calculator"): ("us", "aca-calc"),
-    ("us", "cliff-watch"): ("us", "cliffwatch"),
-}
-
-# A linked analysis: ("app", country, slug) or ("post", "", slug).
+# What a link leads to: a research entry, ("app", country, slug) or ("post",
+# "", slug), or a scorecard record whose analysis the registries no longer list.
 Key = Tuple[str, str, str]
+Target = Tuple[str, object]  # ("entry", Key) or ("record", source)
 
 
 def today_utc() -> str:
@@ -161,46 +157,39 @@ def _decode(text: str) -> str:
     return text
 
 
-def _segments(path: str) -> List[str]:
-    return [s for s in path.split("/") if s]
+def normalize_host(host: str) -> str:
+    host = host.lower().rstrip(".")
+    return host[4:] if host.startswith("www.") else host
 
 
-def _clean_slug(segment: str) -> Optional[str]:
-    match = re.match(r"^[a-z0-9_-]+", segment.lower())
-    if not match:
-        return None
-    slug = match.group(0).rstrip("-_").replace("_", "-")
-    return slug or None
+def normalize_path(path: str) -> str:
+    """A path as the site routes it: lowercase, underscores as hyphens,
+    repeated slashes and dot segments resolved, trailing punctuation and
+    slash dropped."""
+    path = re.sub(r"/+", "/", "/" + (path or "").lower())
+    path = posixpath.normpath(path)
+    segments = [s.strip(".-_").replace("_", "-") for s in path.split("/")]
+    path = "/".join(s for s in segments if s)
+    return f"/{path}" if path else "/"
 
 
-def site_paths(text: str) -> List[List[str]]:
-    """The path segments of every policyengine.org link, lowercased, once each."""
-    seen: List[List[str]] = []
-    for match in _SITE.finditer(_decode(text)):
-        segments = [s.lower() for s in _segments(match.group(1) or "")]
-        if segments not in seen:
-            seen.append(segments)
-    return seen
-
-
-def other_links(text: str) -> List[Tuple[str, str]]:
-    """(host, path) of every link to another host, lowercased, once each."""
+def links(text: str) -> List[Tuple[str, str]]:
+    """(host, path) of every link in the text, normalised, once each."""
     seen: List[Tuple[str, str]] = []
-    for match in _URL.finditer(_decode(text)):
-        host = match.group(1).lower().rstrip(".")
-        if host == "policyengine.org" or host.endswith(".policyengine.org"):
-            continue
-        link = (host, (match.group(2) or "/").split("?")[0].split("#")[0].lower())
+    for match in _LINK.finditer(_decode(text)):
+        link = (normalize_host(match.group(1)), normalize_path(match.group(2) or "/"))
         if link not in seen:
             seen.append(link)
     return seen
 
 
-def _host(url: str) -> Tuple[str, str]:
+def _host_path(url: str) -> Tuple[str, str]:
     parsed = urllib.parse.urlsplit(url)
-    return (parsed.hostname or "").lower(), (parsed.path or "/").rstrip(
-        "/"
-    ).lower() or "/"
+    return normalize_host(parsed.hostname or ""), normalize_path(parsed.path)
+
+
+def _under(path: str, prefix: str) -> bool:
+    return prefix == "/" or path == prefix or path.startswith(prefix + "/")
 
 
 class Registry:
@@ -209,28 +198,21 @@ class Registry:
 
     def __init__(self, apps: Sequence[dict], posts: Sequence[dict], rules: dict):
         self.rules = rules
-        countries = rules["country_tags"]
-        self.countries = set(countries)
+        self.countries = set(rules["country_tags"])
         self.entries: Dict[Key, dict] = {}
-        self.hosts: Dict[str, List[Key]] = {}
         for app in apps:
             tags = app.get("tags") or []
             if not (app.get("slug") and app.get("countryId")):
                 continue
             if not (app.get("displayWithResearch") or "policy" in tags):
                 continue
-            key: Key = ("app", app["countryId"], app["slug"])
-            self.entries[key] = {
+            self.entries[("app", app["countryId"], app["slug"])] = {
                 "kind": "app",
                 "countries": [app["countryId"]],
                 "slug": app["slug"],
                 "tags": tags,
                 "comparables": app.get("comparables"),
             }
-            source = app.get("source") or ""
-            host, _ = _host(source)
-            if host.endswith(".vercel.app") or host.endswith(".github.io"):
-                self.hosts.setdefault(host, []).append(key)
         for post in posts:
             tags = post.get("tags") or []
             slug = post_slug(post["filename"])
@@ -242,50 +224,6 @@ class Registry:
                 "tags": tags,
                 "comparables": post.get("comparables"),
             }
-
-    def stale_aliases(self) -> List[str]:
-        return [
-            f"{c}/{path} -> {tc}/{ts}"
-            for (c, path), (tc, ts) in ALIASES.items()
-            if ("app", tc, ts) not in self.entries
-        ]
-
-    def from_path(self, segments: List[str]) -> Tuple[Optional[Key], Optional[str]]:
-        """The entry a policyengine.org path names, or why none is known."""
-        if len(segments) < 2 or segments[0] not in self.countries:
-            return None, None
-        country = segments[0]
-        if segments[1] in ("research", "blog"):
-            slug = _clean_slug(segments[2]) if len(segments) > 2 else None
-            if slug is None:
-                return None, None
-            alias = ALIASES.get((country, f"research/{slug}"))
-            if alias:
-                return ("app",) + alias, None
-            if ("post", "", slug) in self.entries:
-                return ("post", "", slug), None
-            dated = _DATED_SLUG.match(slug)
-            if dated and ("post", "", dated.group(1)) in self.entries:
-                return ("post", "", dated.group(1)), None
-            return None, f"policyengine.org/{country}/research/{slug} is not a post"
-        slug = _clean_slug(segments[1])
-        alias = ALIASES.get((country, slug or ""))
-        if alias:
-            return ("app",) + alias, None
-        if slug and ("app", country, slug) in self.entries:
-            return ("app", country, slug), None
-        return None, None
-
-    def from_host(self, host: str) -> List[Key]:
-        """The research apps served from a host: the host in an app's source,
-        or one of its Vercel preview deployments (<project>-git-<branch>-...)."""
-        if host in self.hosts:
-            return self.hosts[host]
-        for known, keys in self.hosts.items():
-            project = known.split(".")[0]
-            if host.endswith(".vercel.app") and host.startswith(f"{project}-git-"):
-                return keys
-        return []
 
     def may_declare_no_estimate(self, entry: dict) -> bool:
         tags = set(entry["tags"])
@@ -304,17 +242,90 @@ class Registry:
         )
 
 
-def linked_analyses(text: str, registry: Registry) -> Tuple[List[Key], List[str]]:
-    """Every research entry an edition links, and every link the check refuses."""
-    keys: List[Key] = []
+class Routes:
+    """Where links lead: policyengine-app-v2's route map, and the pages and
+    deployments of every scorecard record."""
+
+    def __init__(self, routes: dict, registry: Registry, index: dict):
+        self.registry = registry
+        self.paths: List[Tuple[str, bool, Target]] = []
+        self.hosts: List[Tuple[str, str, List[Target]]] = []
+        for route in routes["paths"]:
+            key = self._entry(route["entry"])
+            if key:
+                self.paths.append((route["path"], route["prefix"], ("entry", key)))
+        for route in routes["hosts"]:
+            keys = [k for k in (self._entry(e) for e in route["entries"]) if k]
+            if keys:
+                self.hosts.append(
+                    (route["host"], route["pathPrefix"], [("entry", k) for k in keys])
+                )
+        # a record's own page and deployments lead to it, so a dashboard
+        # taken off the registry is still held to its record
+        for source, record in index["analyses"].items():
+            target: Target = ("record", source)
+            host, path = _host_path(record.get("url") or "")
+            if host == SITE_HOST and path != "/":
+                self.paths.append((path, True, target))
+            for url in record.get("deployments") or []:
+                d_host, d_path = _host_path(url)
+                project = d_path.split("/")[1] if d_path != "/" else ""
+                prefix = (
+                    f"/{project}" if d_host.endswith(".github.io") and project else "/"
+                )
+                self.hosts.append((d_host, prefix, [target]))
+
+    def _entry(self, key: str) -> Optional[Key]:
+        match = re.match(r"^app ([a-z]{2})/([a-z0-9-]+)$", key)
+        if not match:
+            return None
+        entry = ("app", match.group(1), match.group(2))
+        return entry if entry in self.registry.entries else None
+
+    def on_site(self, path: str) -> Tuple[List[Target], Optional[str]]:
+        """What a policyengine.org path leads to, or why it is refused."""
+        segments = [s for s in path.split("/") if s]
+        if (
+            len(segments) >= 3
+            and segments[0] in self.registry.countries
+            and segments[1] in ("research", "blog")
+        ):
+            slug = segments[2]
+            for candidate in (slug, (_DATED_SLUG.match(slug) or [None, None])[1]):
+                if candidate and ("post", "", candidate) in self.registry.entries:
+                    return [("entry", ("post", "", candidate))], None
+        found: List[Target] = []
+        for route_path, prefix, target in self.paths:
+            if path == route_path or (prefix and path.startswith(route_path + "/")):
+                if target not in found:
+                    found.append(target)
+        if found:
+            return found, None
+        if len(segments) >= 3 and segments[1] in ("research", "blog"):
+            return [], f"policyengine.org{path} is not a post"
+        return [], None
+
+    def off_site(self, host: str, path: str) -> List[Target]:
+        """What a link to another host leads to: a deployment in the route map
+        or a record, or a Vercel preview of one (<project>-git-<branch>-...)."""
+        found: List[Target] = []
+        for route_host, prefix, targets in self.hosts:
+            preview = (
+                route_host.endswith(".vercel.app")
+                and host.endswith(".vercel.app")
+                and host.startswith(route_host.split(".")[0] + "-git-")
+            )
+            if (host == route_host or preview) and _under(path, prefix):
+                found.extend(t for t in targets if t not in found)
+        return found
+
+
+def linked(text: str, routes: Routes) -> Tuple[List[Target], List[str]]:
+    """Everything an edition links that the check applies to, and every link
+    it refuses."""
+    targets: List[Target] = []
     refused: List[str] = []
-    for segments in site_paths(text):
-        key, problem = registry.from_path(segments)
-        if problem:
-            refused.append(problem)
-        if key and key not in keys:
-            keys.append(key)
-    for host, path in other_links(text):
+    for host, path in links(text):
         tracked = any(
             (host == h or host.endswith(f".{h}")) and path.startswith(prefix)
             for h, prefix in TRACKING
@@ -327,10 +338,16 @@ def linked_analyses(text: str, registry: Registry) -> Tuple[List[Key], List[str]
                 "link the policyengine.org page itself"
             )
             continue
-        for key in registry.from_host(host):
-            if key not in keys:
-                keys.append(key)
-    return keys, refused
+        if host == SITE_HOST or host.endswith(f".{SITE_HOST}"):
+            if host != SITE_HOST:
+                continue  # another PolicyEngine site (the legacy app, the API)
+            found, problem = routes.on_site(path)
+            if problem:
+                refused.append(problem)
+        else:
+            found = routes.off_site(host, path)
+        targets.extend(t for t in found if t not in targets)
+    return targets, refused
 
 
 def fresh(index_entry: dict, on: str, window_days: int) -> List[str]:
@@ -367,6 +384,14 @@ def fresh(index_entry: dict, on: str, window_days: int) -> List[str]:
     return reasons
 
 
+def _string_list(value: object, nonempty: bool = False) -> bool:
+    return (
+        isinstance(value, list)
+        and all(isinstance(v, str) and v for v in value)
+        and (bool(value) or not nonempty)
+    )
+
+
 def check_index(index: object) -> List[str]:
     """Every reason the downloaded index cannot be trusted."""
     if not isinstance(index, dict):
@@ -390,12 +415,12 @@ def check_index(index: object) -> List[str]:
     if (
         not isinstance(rules, dict)
         or not all(
-            isinstance(rules.get(k), list)
+            _string_list(rules.get(k), nonempty=True)
             for k in ("analysis_tags", "no_estimate_tags", "country_tags")
         )
-        or not isinstance(rules.get("default_country"), str)
+        or rules.get("default_country") not in (rules.get("country_tags") or [])
     ):
-        errors.append("the scorecard index publishes no entry_rules")
+        errors.append("the scorecard index publishes no complete entry_rules")
     analyses = index.get("analyses")
     if not isinstance(analyses, dict):
         return errors + ["the scorecard index has no analyses object"]
@@ -411,22 +436,68 @@ def check_index(index: object) -> List[str]:
             for s in searches:
                 if not isinstance(s, dict) or not is_date(s.get("date")):
                     errors.append(f"{where} has a search with no real date")
-                elif not isinstance(s.get("results_pins"), list):
+                elif not _string_list(s.get("results_pins")):
                     errors.append(f"{where} has a search with no results_pins")
-        if not isinstance(entry.get("current_pins"), list):
+        if not _string_list(entry.get("current_pins")):
             errors.append(f"{where} has no current_pins")
-        comparisons = entry.get("comparisons", [])
-        if not isinstance(comparisons, list) or not all(
-            isinstance(c, dict) and isinstance(c.get("status"), str)
-            for c in comparisons
+        if not isinstance(entry.get("url"), str) or not _string_list(
+            entry.get("deployments", [])
         ):
-            errors.append(f"{where} has a comparison with no status")
+            errors.append(f"{where} has no page url or a malformed deployments list")
+        comparisons = entry.get("comparisons", [])
+        if not isinstance(comparisons, list):
+            errors.append(f"{where} has no comparisons list")
+            continue
+        for c in comparisons:
+            if (
+                not isinstance(c, dict)
+                or c.get("status") not in STATUSES
+                or not isinstance(c.get("claim"), str)
+                or (
+                    "found_on" in c
+                    and c["found_on"] is not None
+                    and not is_date(c["found_on"])
+                )
+            ):
+                errors.append(
+                    f"{where} has a comparison with no claim, a status not in "
+                    f"{STATUSES}, or a found_on that is not a date"
+                )
+                break
     return errors
 
 
-def record_for(
-    key: Key, entry: dict, index: dict
-) -> Tuple[Optional[str], Optional[dict]]:
+def check_routes(routes: object) -> List[str]:
+    """Every reason the downloaded route map cannot be trusted."""
+    if not isinstance(routes, dict) or routes.get("schema") != ROUTES_SCHEMA:
+        return [f"policyengine-app-v2's route map is not {ROUTES_SCHEMA}"]
+    errors = []
+    paths, hosts = routes.get("paths"), routes.get("hosts")
+    if (
+        not isinstance(paths, list)
+        or not paths
+        or not all(
+            isinstance(p, dict)
+            and isinstance(p.get("path"), str)
+            and p["path"].startswith("/")
+            and isinstance(p.get("prefix"), bool)
+            and isinstance(p.get("entry"), str)
+            for p in paths
+        )
+    ):
+        errors.append("policyengine-app-v2's route map has malformed paths")
+    if not isinstance(hosts, list) or not all(
+        isinstance(h, dict)
+        and isinstance(h.get("host"), str)
+        and isinstance(h.get("pathPrefix"), str)
+        and _string_list(h.get("entries"), nonempty=True)
+        for h in hosts
+    ):
+        errors.append("policyengine-app-v2's route map has malformed hosts")
+    return errors
+
+
+def record_for(entry: dict, index: dict) -> Tuple[str, Optional[dict]]:
     """The scorecard record an entry names, or the one its name implies."""
     analyses = index["analyses"]
     block = entry.get("comparables")
@@ -445,51 +516,43 @@ def record_for(
     return candidates[0], None
 
 
-def _page(key: Key) -> str:
-    kind, country, slug = key
-    return (
-        f"policyengine.org/{country}/{slug}"
-        if kind == "app"
-        else f"policyengine.org/research/{slug}"
-    )
+def _page(target: Target, index: dict) -> str:
+    kind, ref = target
+    if kind == "record":
+        return str(index["analyses"][ref].get("url") or ref)
+    entry_kind, country, slug = ref  # type: ignore[misc]
+    if entry_kind == "app":
+        return f"policyengine.org/{country}/{slug}"
+    return f"policyengine.org/research/{slug}"
 
 
 def check_edition(
-    name: str, text: str, on: str, registry: Registry, index: dict
+    name: str, text: str, on: str, routes: Routes, index: dict
 ) -> List[str]:
     """Every reason this edition may not go out on ``on``."""
     window = index["promotion_window_days"]
-    keys, refused = linked_analyses(text, registry)
+    registry = routes.registry
+    targets, refused = linked(text, routes)
     errors = [f"{name}: {problem}" for problem in refused]
-    for key in keys:
-        entry = registry.entries[key]
-        if not registry.publishes_estimate(entry):
+    checked: Set[str] = set()
+    for target in targets:
+        page = _page(target, index)
+        if target[0] == "record":
+            source, recorded = str(target[1]), index["analyses"][target[1]]
+        else:
+            entry = registry.entries[target[1]]  # type: ignore[index]
+            if not registry.publishes_estimate(entry):
+                continue
+            source, recorded = record_for(entry, index)
+            if recorded is None:
+                errors.append(
+                    f"{name}: {page} has no comparables record in the scorecard; "
+                    f"run the comparables review ({source}) before sending"
+                )
+                continue
+        if source in checked:
             continue
-        source, recorded = record_for(key, entry, index)
-        if recorded is None:
-            errors.append(
-                f"{name}: {_page(key)} has no comparables record in the scorecard; "
-                f"run the comparables review ({source}) before sending"
-            )
-            continue
-        for reason in fresh(recorded, on, window):
-            errors.append(f"{name}: {_page(key)}: {reason}")
-    # A page the registry no longer lists (taken down, or not yet listed)
-    # that still has a scorecard record is held to its record.
-    for segments in site_paths(text):
-        if len(segments) < 2 or segments[0] not in registry.countries:
-            continue
-        slug = _clean_slug(segments[1])
-        source = f"analysis-{segments[0]}-{slug}"
-        recorded = index["analyses"].get(source)
-        if (
-            slug is None
-            or ("app", segments[0], slug) in keys
-            or recorded is None
-            or recorded.get("kind") != "app"
-        ):
-            continue
-        page = f"policyengine.org/{segments[0]}/{slug}"
+        checked.add(source)
         for reason in fresh(recorded, on, window):
             errors.append(f"{name}: {page}: {reason}")
     return errors
@@ -533,19 +596,49 @@ def due_editions(
     return due, errors
 
 
-def _load(where: str) -> object:
-    if not where.startswith("https://"):
-        return json.loads(Path(where).read_text(encoding="utf-8"))
+def _get(url: str, accept: Optional[str] = None) -> requests.Response:
+    headers = {"Accept": accept} if accept else {}
+    token = os.environ.get("GITHUB_TOKEN")
+    if token and url.startswith("https://api.github.com/"):
+        headers["Authorization"] = f"Bearer {token}"
     last_error: Optional[Exception] = None
     for attempt in range(4):
         try:
-            response = requests.get(where, timeout=30)
+            response = requests.get(url, timeout=30, headers=headers)
             response.raise_for_status()
-            return response.json()
+            return response
         except Exception as error:  # noqa: BLE001 - every failure retries, then fails
             last_error = error
             time.sleep(2**attempt)
-    raise SystemExit(f"could not read {where}: {last_error}")
+    raise SystemExit(f"could not read {url}: {last_error}")
+
+
+def _pinned(url: str, commits: Dict[str, str]) -> str:
+    """A raw main-branch URL at the commit main points to now, so a cached
+    copy of the file is never read."""
+    match = _RAW_MAIN.match(url)
+    if not match:
+        return url
+    repo, path = match.groups()
+    if repo not in commits:
+        sha = _get(
+            f"https://api.github.com/repos/{repo}/commits/main",
+            accept="application/vnd.github.sha",
+        ).text.strip()
+        if not re.fullmatch(r"[0-9a-f]{40}", sha):
+            raise SystemExit(f"could not resolve {repo}'s main branch: {sha[:80]!r}")
+        commits[repo] = sha
+    return f"https://raw.githubusercontent.com/{repo}/{commits[repo]}/{path}"
+
+
+def _load(where: str, commits: Optional[Dict[str, str]] = None) -> object:
+    if not where.startswith("https://"):
+        return json.loads(Path(where).read_text(encoding="utf-8"))
+    url = _pinned(where, commits if commits is not None else {})
+    try:
+        return _get(url).json()
+    except ValueError as error:
+        raise SystemExit(f"{url} is not JSON: {error}") from error
 
 
 def run_check(
@@ -556,43 +649,41 @@ def run_check(
     cutover: Optional[str] = None,
     today: Optional[str] = None,
     require_dates: bool = False,
+    routes_source: Optional[str] = None,
 ) -> Tuple[List[Path], List[str]]:
     """Check every edition due on or after the cutover. The sources and the
     cutover default to the module's ``APPS_URL``, ``POSTS_URL``,
-    ``INDEX_URL`` and ``PROMOTION_CUTOVER_DATE``, read when called. Returns
-    the editions checked and every error; downloads nothing when none is
-    due."""
-    apps = apps or APPS_URL
-    posts = posts or POSTS_URL
-    index_source = index_source or INDEX_URL
+    ``ROUTES_URL``, ``INDEX_URL`` and ``PROMOTION_CUTOVER_DATE``, read when
+    called. Returns the editions checked and every error; downloads nothing
+    when none is due."""
     due, errors = due_editions(
         files, cutover or PROMOTION_CUTOVER_DATE, today, require_dates
     )
     if not due:
         return [], errors
-    index = _load(index_source)
+    commits: Dict[str, str] = {}
+    index = _load(index_source or INDEX_URL, commits)
     problems = check_index(index)
+    route_map = _load(routes_source or ROUTES_URL, commits)
+    problems += check_routes(route_map)
     if problems:
         return [path for path, _ in due], errors + problems
-    registry = Registry(_load(apps), _load(posts), index["entry_rules"])
-    stale = registry.stale_aliases()
-    if stale:
-        return [path for path, _ in due], errors + [
-            "the redirect table in comparables.py names an analysis the "
-            f"registry no longer lists: {a}"
-            for a in stale
-        ]
+    registry = Registry(
+        _load(apps or APPS_URL, commits),
+        _load(posts or POSTS_URL, commits),
+        index["entry_rules"],
+    )
+    routes = Routes(route_map, registry, index)
     for path, on in due:
         text = path.read_text(encoding="utf-8")
-        errors.extend(check_edition(path.name, text, on, registry, index))
+        errors.extend(check_edition(path.name, text, on, routes, index))
     return [path for path, _ in due], errors
 
 
 HOW_TO_FIX = (
     "Run the comparables review for each analysis above (the "
     "policyengine-comparables-review skill, search kind prepromotion), merge its "
-    "scorecard PR, then check again; raw.githubusercontent.com caches the index "
-    "for up to 5 minutes after a merge."
+    "scorecard PR, then check again."
 )
 
 
@@ -601,6 +692,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("paths", nargs="*", default=["editions"])
     parser.add_argument("--apps", default=None)
     parser.add_argument("--posts", default=None)
+    parser.add_argument("--routes", default=None)
     parser.add_argument("--index", default=None)
     parser.add_argument("--cutover", default=None)
     parser.add_argument(
@@ -618,6 +710,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         args.index,
         args.cutover,
         require_dates=args.require_dates,
+        routes_source=args.routes,
     )
     cutover = args.cutover or PROMOTION_CUTOVER_DATE
     if not due and not errors:

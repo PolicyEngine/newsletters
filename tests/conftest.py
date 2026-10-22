@@ -38,7 +38,17 @@ def offline_comparables(tmp_path_factory, monkeypatch):
     )
     monkeypatch.setattr(comparables, "APPS_URL", str(root / "apps.json"))
     monkeypatch.setattr(comparables, "POSTS_URL", str(root / "posts.json"))
+    (root / "routes.json").write_text(
+        json.dumps(
+            {
+                "schema": comparables.ROUTES_SCHEMA,
+                "paths": [{"path": "/us/none", "prefix": True, "entry": "app us/none"}],
+                "hosts": [],
+            }
+        )
+    )
     monkeypatch.setattr(comparables, "INDEX_URL", str(root / "index.json"))
+    monkeypatch.setattr(comparables, "ROUTES_URL", str(root / "routes.json"))
 
 
 @pytest.fixture

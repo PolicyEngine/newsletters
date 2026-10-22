@@ -59,6 +59,6 @@ ruff check src/ tests/
   - `audience.py` - Audience targeting logic
   - `uploader.py` - Newsletter uploader
   - `cli.py` - Command-line interface
-- `tests/` - Test suite (93% coverage)
+- `tests/` - pytest suite
 - `editions/` - Newsletter HTML files
 - `.env` - Contains `MAILCHIMP_API_KEY` (gitignored)

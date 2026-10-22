@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is a simple newsletter repository containing HTML email templates for PolicyEngine's Mailchimp campaigns. No build tools, testing frameworks, or development servers are needed - this is pure HTML/CSS.
+This repository holds the HTML email templates for PolicyEngine's Mailchimp campaigns, and a Python package (`newsletter_uploader`) that uploads them and checks, before a send, that every analysis an edition links has a fresh comparables search. The editions themselves are plain HTML/CSS with no build step.
 
 ## Repository Structure
 
@@ -57,7 +57,8 @@ All newsletter HTML files follow this pattern:
    for its send date: CI checks the editions a change adds or modifies on their dates,
    and `upload-newsletter` refuses an undated file and judges the edition on the later
    of its date and the day you upload. The same applies to the social posts kept beside
-   an edition. The check confirms the search is fresh; it does not put the comparable
+   an edition, which live in `editions/` as `<date>-<audience>-social.md` (CI fails a social
+   post anywhere else). The check confirms the search is fresh; it does not put the comparable
    in the edition.
 
 ## Email Compatibility
@@ -106,7 +107,7 @@ https://raw.githubusercontent.com/PolicyEngine/newsletters/branch-name/assets/im
 
 ## Uploading to Mailchimp
 
-This repo includes a Python package (`newsletter_uploader`) with full test coverage.
+This repo includes a Python package (`newsletter_uploader`), tested with pytest.
 
 ### Installation
 
@@ -163,6 +164,7 @@ import requests
 
 API_KEY = "your-api-key"
 SERVER = "us5"  # from API key suffix
+CAMPAIGN_ID = "duplicate-campaign-id"
 url = f"https://{SERVER}.api.mailchimp.com/3.0/campaigns/{CAMPAIGN_ID}"
 requests.delete(url, auth=("anystring", API_KEY))
 ```
@@ -170,7 +172,7 @@ requests.delete(url, auth=("anystring", API_KEY))
 ### Development
 
 ```bash
-# Run tests (93% coverage)
+# Run tests (with coverage: pytest --cov=newsletter_uploader)
 pytest -v
 
 # Format and lint
@@ -180,7 +182,7 @@ ruff check src/ tests/
 
 The package is structured with:
 - `src/newsletter_uploader/` - Core package modules
-- `tests/` - Comprehensive test suite
+- `tests/` - pytest suite
 - CI runs on GitHub Actions for Python 3.8-3.11
 
 ## Claude Code Automations
