@@ -10,8 +10,9 @@ import pytest
 SCRIPT = Path(__file__).resolve().parent.parent / "scripts" / "lint-newsletters.sh"
 SHA = "43919d6d0b6509a0407203fa7f268e90f9122968"
 NEW = "2026-11-03-uk.html"
+BASH = shutil.which("bash")
 
-pytestmark = pytest.mark.skipif(shutil.which("bash") is None, reason="needs bash")
+pytestmark = pytest.mark.skipif(BASH is None, reason="needs bash")
 
 
 def image(ref, quote='"'):
@@ -32,7 +33,7 @@ def run_lint(tmp_path, files, env=None):
     run_env = {k: v for k, v in os.environ.items() if k != "GITHUB_ACTIONS"}
     run_env.update(env or {})
     return subprocess.run(
-        ["bash", str(SCRIPT)],
+        [BASH, str(SCRIPT)],
         cwd=tmp_path,
         env=run_env,
         capture_output=True,
@@ -53,10 +54,11 @@ def test_new_edition_not_pinned_warns_but_passes(tmp_path, ref):
     assert result.returncode == 0
     assert "WARNING" in result.stdout
     url = f"https://raw.githubusercontent.com/PolicyEngine/newsletters/{ref}/"
-    assert f'2:src="{url}' in result.stdout
+    assert f"\n2:{url}" in result.stdout
 
 
 UNPINNED_URL = "https://raw.githubusercontent.com/PolicyEngine/newsletters/main/assets/images/c.png"
+PINNED_URL = UNPINNED_URL.replace("/main/", f"/{SHA}/")
 
 
 @pytest.mark.parametrize(
@@ -65,12 +67,18 @@ UNPINNED_URL = "https://raw.githubusercontent.com/PolicyEngine/newsletters/main/
         (image("main", quote="'"), True),
         (f'<img src = "{UNPINNED_URL}" alt="Chart">', True),
         (f'<img alt="Chart"\nsrc="{UNPINNED_URL}">', True),
+        (f'<img src=\n"{UNPINNED_URL}" alt="Chart">', True),
+        (f'<img SRC="{UNPINNED_URL}" alt="Chart">', True),
+        (f"<img src={UNPINNED_URL} alt=Chart>", True),
         (f'<img data-src="{UNPINNED_URL}" alt="Chart">', False),
         (f"<a href=\"https://example.com/?src='{UNPINNED_URL}'\">Link</a>", False),
+        (f"<a title=\"An example src='{UNPINNED_URL}'\">Link</a>", False),
+        (f'<img alt="Chart from src=\'{UNPINNED_URL}\'" src="{PINNED_URL}">', False),
         (f'<a href="{UNPINNED_URL}">Link</a>', False),
+        (f'<!-- <img src="{UNPINNED_URL}"> -->', False),
     ],
 )
-def test_warning_matches_only_src_attributes(tmp_path, html, warns):
+def test_warning_reads_src_attributes_as_html(tmp_path, html, warns):
     result = run_lint(tmp_path, {NEW: html})
     assert result.returncode == 0
     assert ("WARNING" in result.stdout) is warns
@@ -95,14 +103,25 @@ def test_warning_applies_from_the_first_pinned_edition(tmp_path, name, warns):
 def test_warning_lists_only_unpinned_images(tmp_path, separator, line):
     result = run_lint(tmp_path, {NEW: image(SHA) + separator + image("main")})
     assert result.returncode == 0
-    assert f"{line}:src=" in result.stdout
+    assert f"\n{line}:https://raw.githubusercontent.com/" in result.stdout
     assert SHA not in result.stdout
 
 
 def test_github_actions_annotation(tmp_path):
     result = run_lint(tmp_path, {NEW: image("main")}, env={"GITHUB_ACTIONS": "true"})
     assert result.returncode == 0
-    assert f"::warning file=editions/{NEW}::" in result.stdout
+    assert f"::warning file=editions/{NEW},line=2::" in result.stdout
+
+
+def test_missing_python_skips_the_warning(tmp_path):
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    for tool in ("grep", "dirname"):
+        (bin_dir / tool).symlink_to(shutil.which(tool))
+    result = run_lint(tmp_path, {NEW: image("main")}, env={"PATH": str(bin_dir)})
+    assert result.returncode == 0, result.stderr
+    assert "python3 not found" in result.stdout
+    assert "WARNING" not in result.stdout
 
 
 def test_refs_heads_is_an_error_that_points_to_sha_pinning(tmp_path):
