@@ -22,14 +22,18 @@ Create a new newsletter HTML file from PolicyEngine research posts and optional 
 2. **For each post**:
    - Use the `newsletter-writer` subagent to generate HTML section
    - Find post in `../policyengine-app/src/posts/articles/`
-   - Generate section with key findings and styling
+   - Generate a white `section-pad` section with key findings, an optional image and the teal button
 
-3. **Compile newsletter**:
-   - Create new HTML file in `editions/` with today's date
-   - Add header with logo
-   - Insert event hero section if `--event` provided
-   - Add research sections
-   - Add footer with Mailchimp merge tags
+3. **Compile newsletter** following "Newsletter Template Structure" in `CLAUDE.md`:
+   - Copy the most recent edition in `editions/` to a new file named `YYYY-MM-DD-{audience}.html` with the planned send date
+   - Set the `<title>` and the header date to the send date (e.g. `PolicyEngine UK &middot; 27 October 2026`)
+   - Keep the header's white PNG logo, pinned to its commit SHA
+   - Put the event in the hero if `--event` provided; otherwise use the hero for the edition's headline
+   - Replace the old sections with the research sections
+   - Write the hidden preheader `<div>`, and use the same words for `--preview` when uploading
+   - Commit and push any new images, then replace each `<commit-sha>` in image URLs with the full 40-character SHA of that pushed commit (never a branch name or `main`)
+   - Keep the sign-off, and the footer with all four Mailchimp merge tags
+   - Run `bash scripts/lint-newsletters.sh`
 
 4. **Show result**:
    - Path to generated file
