@@ -109,7 +109,7 @@ A branch URL stops working once the branch is deleted after merge, and a `main` 
 These came from the independent review of #31 (2026-10-27).
 
 - **Make the hidden preheader match the campaign's preview text.** The preheader `<div>` text must be the same words as the Mailchimp campaign's preview text (the uploader's `--preview`, or the preview set in Mailchimp). If you change one, change the other. In #31 they differed: the file says "On Budget day at 4:30pm, we'll present our first estimates and take your questions." while the campaign's preview was "We'll present our first estimates on Budget day and take your questions."
-- **Give every `linear-gradient` a solid `background-color` fallback.** caniemail lists no `linear-gradient` support in any Outlook client at the latest version it tested: Windows desktop 2007–2019 (where gradients need VML), Windows Mail, Outlook.com, and the Mac, iOS and Android apps. Without a fallback the element has no background there. The hero and the feature card already do this: `background: linear-gradient(...); background-color:#234E52;`. Put `background-color` after the `background` shorthand, because the shorthand resets it. The hero's 48×3px accent bar has no fallback in either edition, so it doesn't show in Outlook. Don't just add `background-color` to it: caniemail says classic Outlook for Windows ignores `width` and `height` on a `<div>`, so the colour would likely spread across the hero (untested). Either leave the bar as it is, or rebuild it as a 48×3 table cell with `bgcolor` and `font-size:0;line-height:0;` and test that in Outlook before sending.
+- **Give every `linear-gradient` a solid `background-color` fallback.** caniemail lists no `linear-gradient` support in any Outlook client at the latest version it tested: Windows desktop 2007–2019 (where gradients need VML), Windows Mail, Outlook.com, and the Mac, iOS and Android apps. Without a fallback the element has no background there. The hero and the feature card already do this: `background: linear-gradient(...); background-color:#234E52;`. Put `background-color` after the `background` shorthand, because the shorthand resets it. The hero's 48×3px accent bar has no fallback in either edition, so it doesn't show in Outlook. Don't just add `background-color` to it: caniemail says classic Outlook for Windows ignores `width` and `height` on a `<div>`, so the colour would likely spread across the hero (untested). To give it one, rebuild it as a 48×3 table cell with `bgcolor` and `font-size:0;line-height:0;`, and test that in Outlook before sending.
 
 ## Creating New Newsletters
 
@@ -154,7 +154,7 @@ Use a full commit SHA, not a branch name or `main`; see "Images" under "Newslett
 
 ## File Naming Conventions
 
-- Newsletter editions: `YYYY-MM-DD-{audience}.html` (e.g., `2026-10-20-uk.html`). The file name carries the planned date and isn't renamed if the send moves; the `<title>` and header carry the send date (`2026-10-20-uk.html` went out on 21 October, `2026-10-26-uk.html` on 27 October).
+- Newsletter editions: `YYYY-MM-DD-{audience}.html` (e.g., `2026-10-20-uk.html`). The file name carries the planned date and isn't renamed if the send moves; the `<title>` and header carry the send date (`2026-10-20-uk.html` is dated 21 October, `2026-10-26-uk.html` 27 October).
 - Images: Descriptive names in `assets/images/`
 
 ## Configuration
