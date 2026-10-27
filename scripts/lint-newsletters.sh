@@ -4,6 +4,12 @@
 set -e
 
 ERRORS=0
+WARNINGS=0
+
+# Editions dated on or after this day pin every raw.githubusercontent.com image
+# to a full commit SHA (2026-09-08-us-v2.html was the first). Older editions
+# use branch names, so the branch-name warning below skips them.
+SHA_PINNED_FROM=20260908
 
 echo "Checking newsletter HTML files..."
 
@@ -20,12 +26,37 @@ for file in editions/*.html; do
 
     # Check for refs/heads/ in URLs - causes rendering issues in Mailchimp
     if grep -q 'refs/heads/' "$file"; then
-        echo "    ❌ ERROR: URL contains refs/heads/ which can break in Mailchimp. Use /master/ or /main/ directly."
+        echo "    ❌ ERROR: URL contains refs/heads/, which can break in Mailchimp. Pin raw.githubusercontent.com URLs to a full 40-character commit SHA instead (see \"Images\" in CLAUDE.md)."
         grep -n 'refs/heads/' "$file"
         ERRORS=$((ERRORS + 1))
     fi
 
+    # Warn when a newer edition loads an image from a branch name, `main` or a
+    # short SHA rather than a full commit SHA. Undated files count as newer.
+    name="${file##*/}"
+    if [[ "$name" =~ ^([0-9]{4})-([0-9]{2})-([0-9]{2}) ]]; then
+        edition_date="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
+    else
+        edition_date=99999999
+    fi
+    if [ "$edition_date" -ge "$SHA_PINNED_FROM" ]; then
+        unpinned=$(grep -noE "src=[\"']https://raw\.githubusercontent\.com/[^/\"']+/[^/\"']+/[^/\"']+/" "$file" | grep -vE '/[0-9a-fA-F]{40}/$' || true)
+        if [ -n "$unpinned" ]; then
+            echo "    ⚠️  WARNING: Image URL isn't pinned to a full 40-character commit SHA. Use the SHA of the pushed commit that added the image, not a branch name or main (see \"Images\" in CLAUDE.md)."
+            echo "$unpinned"
+            if [ -n "$GITHUB_ACTIONS" ]; then
+                echo "::warning file=$file::Image URL isn't pinned to a full 40-character commit SHA (see \"Images\" in CLAUDE.md)."
+            fi
+            WARNINGS=$((WARNINGS + 1))
+        fi
+    fi
+
 done
+
+if [ $WARNINGS -gt 0 ]; then
+    echo ""
+    echo "⚠️  Found $WARNINGS warning(s). These don't fail the lint."
+fi
 
 if [ $ERRORS -gt 0 ]; then
     echo ""

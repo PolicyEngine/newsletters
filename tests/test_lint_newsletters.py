@@ -1,0 +1,97 @@
+"""Tests for scripts/lint-newsletters.sh."""
+
+import os
+import shutil
+import subprocess
+from pathlib import Path
+
+import pytest
+
+SCRIPT = Path(__file__).resolve().parent.parent / "scripts" / "lint-newsletters.sh"
+SHA = "43919d6d0b6509a0407203fa7f268e90f9122968"
+NEW = "2026-11-03-uk.html"
+
+pytestmark = pytest.mark.skipif(shutil.which("bash") is None, reason="needs bash")
+
+
+def image(ref, quote='"'):
+    """Return an <img> tag loading a newsletters image at the given ref."""
+    url = (
+        "https://raw.githubusercontent.com/PolicyEngine/newsletters/"
+        f"{ref}/assets/images/chart.png"
+    )
+    return f"<img src={quote}{url}{quote} alt={quote}Chart{quote}>"
+
+
+def run_lint(tmp_path, files, env=None):
+    """Write the files to tmp_path/editions and lint them there."""
+    editions = tmp_path / "editions"
+    editions.mkdir()
+    for name, html in files.items():
+        (editions / name).write_text(f"<html><body>\n{html}\n</body></html>\n")
+    run_env = {k: v for k, v in os.environ.items() if k != "GITHUB_ACTIONS"}
+    run_env.update(env or {})
+    return subprocess.run(
+        ["bash", str(SCRIPT)],
+        cwd=tmp_path,
+        env=run_env,
+        capture_output=True,
+        text=True,
+    )
+
+
+@pytest.mark.parametrize("ref", [SHA, SHA.upper()])
+def test_new_edition_pinned_to_sha_passes_without_warning(tmp_path, ref):
+    result = run_lint(tmp_path, {NEW: image(ref)})
+    assert result.returncode == 0
+    assert "WARNING" not in result.stdout
+
+
+@pytest.mark.parametrize("ref", ["main", "master", "2026-11-03-uk", SHA[:7]])
+def test_new_edition_not_pinned_warns_but_passes(tmp_path, ref):
+    result = run_lint(tmp_path, {NEW: image(ref)})
+    assert result.returncode == 0
+    assert "WARNING" in result.stdout
+    url = f"https://raw.githubusercontent.com/PolicyEngine/newsletters/{ref}/"
+    assert f'2:src="{url}' in result.stdout
+
+
+def test_single_quoted_src_is_checked(tmp_path):
+    result = run_lint(tmp_path, {NEW: image("main", quote="'")})
+    assert result.returncode == 0
+    assert "WARNING" in result.stdout
+
+
+@pytest.mark.parametrize(
+    "name, warns",
+    [
+        ("2026-09-07-us.html", False),
+        ("2026-09-08-us-v2.html", True),
+        ("2027-01-01-uk.html", True),
+        ("welcome.html", True),
+    ],
+)
+def test_warning_applies_from_the_first_pinned_edition(tmp_path, name, warns):
+    result = run_lint(tmp_path, {name: image("main")})
+    assert result.returncode == 0
+    assert ("WARNING" in result.stdout) is warns
+
+
+def test_warning_lists_only_unpinned_images(tmp_path):
+    result = run_lint(tmp_path, {NEW: image(SHA) + "\n" + image("main")})
+    assert result.returncode == 0
+    assert "3:src=" in result.stdout
+    assert SHA not in result.stdout
+
+
+def test_github_actions_annotation(tmp_path):
+    result = run_lint(tmp_path, {NEW: image("main")}, env={"GITHUB_ACTIONS": "true"})
+    assert result.returncode == 0
+    assert f"::warning file=editions/{NEW}::" in result.stdout
+
+
+def test_refs_heads_is_an_error_that_points_to_sha_pinning(tmp_path):
+    result = run_lint(tmp_path, {"2024-01-01.html": image("refs/heads/main")})
+    assert result.returncode == 1
+    assert "full 40-character commit SHA" in result.stdout
+    assert "/master/ or /main/" not in result.stdout

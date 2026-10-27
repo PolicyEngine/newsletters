@@ -28,7 +28,7 @@ This is a wrapper around the `upload-newsletter` command that:
   - `us`: All non-UK subscribers (COUNTRY ≠ "United Kingdom")
   - `all`: All subscribers
 - `--subject`: Email subject line (required)
-- `--preview`: Preview text shown in inbox (required)
+- `--preview`: Preview text shown in inbox (required). Use the same words as the edition's hidden preheader `<div>`
 - `--title`: Optional internal campaign title (defaults to filename)
 
 ## Implementation
