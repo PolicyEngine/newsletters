@@ -50,7 +50,7 @@ Each section is one table row: a white `td.section-pad` that goes inside the edi
 - **Second body paragraph**: repeat the body `<p>` with the same style.
 - **Inline links** in body text: `<a href="…" style="color:#319795;font-weight:600;text-decoration:none;">Link text&nbsp;&rarr;</a>`.
 - **Image**: optional. Use one that is already in `assets/images/` (check with Glob), linked to the same URL as the button. You can't look up commit SHAs, so leave `<commit-sha>` in the URL. Whoever compiles the edition replaces it with the full 40-character SHA of the pushed commit that added the image. Never put a branch name or `main` there.
-- **Feature card**: for a single standout item, such as a paper, the template has a dark card instead of a white section (`editions/2026-10-20-uk.html`, lines 57–65; item 7 under "Layout, top to bottom" in `CLAUDE.md`). Copy it from there. It needs the `.card-pad` and `.h2` rules in the edition's mobile `<style>` block.
+- **Feature card**: for a single standout item, such as a paper, the template puts a dark card inside the white section (`editions/2026-10-20-uk.html`, lines 57–65; item 7 under "Layout, top to bottom" in `CLAUDE.md`). Copy it from there. It needs the `.card-pad` and `.h2` rules in the edition's mobile `<style>` block.
 
 ## Color Palette
 

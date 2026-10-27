@@ -56,10 +56,24 @@ def test_new_edition_not_pinned_warns_but_passes(tmp_path, ref):
     assert f'2:src="{url}' in result.stdout
 
 
-def test_single_quoted_src_is_checked(tmp_path):
-    result = run_lint(tmp_path, {NEW: image("main", quote="'")})
+UNPINNED_URL = "https://raw.githubusercontent.com/PolicyEngine/newsletters/main/assets/images/c.png"
+
+
+@pytest.mark.parametrize(
+    "html, warns",
+    [
+        (image("main", quote="'"), True),
+        (f'<img src = "{UNPINNED_URL}" alt="Chart">', True),
+        (f'<img alt="Chart"\nsrc="{UNPINNED_URL}">', True),
+        (f'<img data-src="{UNPINNED_URL}" alt="Chart">', False),
+        (f"<a href=\"https://example.com/?src='{UNPINNED_URL}'\">Link</a>", False),
+        (f'<a href="{UNPINNED_URL}">Link</a>', False),
+    ],
+)
+def test_warning_matches_only_src_attributes(tmp_path, html, warns):
+    result = run_lint(tmp_path, {NEW: html})
     assert result.returncode == 0
-    assert "WARNING" in result.stdout
+    assert ("WARNING" in result.stdout) is warns
 
 
 @pytest.mark.parametrize(
@@ -77,10 +91,11 @@ def test_warning_applies_from_the_first_pinned_edition(tmp_path, name, warns):
     assert ("WARNING" in result.stdout) is warns
 
 
-def test_warning_lists_only_unpinned_images(tmp_path):
-    result = run_lint(tmp_path, {NEW: image(SHA) + "\n" + image("main")})
+@pytest.mark.parametrize("separator, line", [("\n", 3), (" ", 2)])
+def test_warning_lists_only_unpinned_images(tmp_path, separator, line):
+    result = run_lint(tmp_path, {NEW: image(SHA) + separator + image("main")})
     assert result.returncode == 0
-    assert "3:src=" in result.stdout
+    assert f"{line}:src=" in result.stdout
     assert SHA not in result.stdout
 
 

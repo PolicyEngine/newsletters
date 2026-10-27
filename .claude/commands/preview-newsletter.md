@@ -28,7 +28,7 @@ Use the `newsletter-previewer` subagent to:
 - No modern CSS features or CSS variables
 - Table-based layouts
 - Full image URLs pinned to a commit SHA, not a branch name or `main`
-- A solid `background-color` behind each gradient
+- A solid `background-color` behind the hero and feature-card gradients (the hero's accent bar has none; see `CLAUDE.md`)
 - Hidden preheader matches the campaign's preview text
 - All four Mailchimp merge tags present
 

@@ -93,7 +93,7 @@ Return a report with:
 - Mobile (320px): [show image if available]
 
 ## Validation Results
-✓ Inline styles only
+✓ Inline styles, apart from the mobile `<style>` block and the font `<link>`
 ✓ 600px max width
 ✓ Email-compatible layout
 ✓ All images use full URLs pinned to commit SHAs
@@ -114,4 +114,4 @@ Return a report with:
 
 - Focus on email client compatibility (not modern browser features)
 - Prioritize visual issues that would affect deliverability
-- Flag any elements that might not render in Outlook or Gmail, such as a gradient with no solid `background-color`, CSS variables or SVG images
+- Flag any elements that might not render in Outlook or Gmail, such as a hero or card gradient with no solid `background-color`, CSS variables or SVG images
