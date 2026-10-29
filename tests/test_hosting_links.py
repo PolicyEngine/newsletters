@@ -96,6 +96,87 @@ def test_hosts_count_wherever_a_reader_could_see_or_follow_them(html, host):
     assert find_hosting_links(html) == [(1, host)]
 
 
+@pytest.mark.parametrize(
+    "html",
+    [
+        # Browsers drop tabs and newlines anywhere in a URL.
+        link("https://x.vercel.\napp/"),
+        link("https://x.vercel.\r\napp/"),
+        link("https://x.vercel.\tapp/"),
+        # The same whitespace as entities or percent-escapes.
+        link("https://x.vercel.&#10;app/"),
+        link("https://x.vercel.&#x9;app/"),
+        link("https://x.vercel.&NewLine;app/"),
+        link("https://x.vercel.%0Aapp/"),
+        "<a href=https://x.vercel.&#10;app/>a</a>",
+        # Browsers read the ideographic and full-width stops as dots.
+        link("https://x.vercel\u3002app/"),
+        link("https://x.vercel\uff0eapp/"),
+        link("https://x.vercel\uff61app/"),
+        link("https://x.vercel%E3%80%82app/"),
+        # Full-width letters fold to ASCII; invisible characters drop out.
+        link("https://x.\uff56\uff45\uff52\uff43\uff45\uff4c.app/"),
+        link("https://x.ver\u200bcel.app/"),
+        link("https://x.ver&shy;cel.app/"),
+    ],
+)
+def test_hosts_count_after_the_folding_a_browser_does(html):
+    assert find_hosting_links(html) == [(1, "x.vercel.app")]
+
+
+@pytest.mark.parametrize(
+    "host",
+    [
+        # Another domain whose leftmost labels happen to read vercel.app.
+        "vercel.app\u3002example.org",
+        "vercel.app.\u4f8b\u5b50.org",
+        "vercel.app.\u4f8b\u5b50",
+        "foo_vercel.app",
+    ],
+)
+def test_hosts_that_only_start_like_a_hosting_domain_pass(host):
+    assert not is_hosting_host(host)
+    assert find_hosting_links(link(f"https://{host}/")) == []
+
+
+@pytest.mark.parametrize(
+    "html, host",
+    [
+        (link("https://\u4f8b\u5b50.vercel.app/"), "\u4f8b\u5b50.vercel.app"),
+        (link("https://m\u00fcnchen.vercel.app/"), "m\u00fcnchen.vercel.app"),
+        # Glued to text in another script, with no space or dot.
+        ("<p>\u8bbf\u95eevercel.app\u4e86\u89e3</p>", "vercel.app"),
+        ("<p>See...vercel.app</p>", "vercel.app"),
+    ],
+)
+def test_hosts_in_other_scripts_are_read_whole(html, host):
+    assert find_hosting_links(html) == [(1, host)]
+
+
+def test_a_host_split_across_lines_reports_where_its_value_starts():
+    html = "\n".join(
+        [
+            "<p>a</p>",
+            '<img srcset="https://a.vercel.app/x.png 1x,',
+            '  https://b.vercel.app/y.png 2x" alt="x">',
+            link("https://c.vercel.\napp/"),
+            "<p>d.vercel.app</p>",
+        ]
+    )
+    assert find_hosting_links(html) == [
+        (2, "a.vercel.app"),
+        (2, "b.vercel.app"),
+        (4, "c.vercel.app"),
+        (6, "d.vercel.app"),
+    ]
+
+
+def test_a_space_or_a_sentence_break_ends_a_host():
+    html = "<p>We host on Vercel. App users like it, and on Modal.\nRun it.</p>"
+    assert find_hosting_links(html) == []
+    assert find_hosting_links(link("https://x.vercel. app/")) == []
+
+
 def test_plain_mentions_of_vercel_pass():
     html = "<p>We host dashboards on Vercel and Modal, and the API on Cloud Run.</p>"
     assert find_hosting_links(html) == []
@@ -209,6 +290,45 @@ def test_property_encoding_never_hides_a_host(host, path):
     entities = link("".join(f"&#{ord(c)};" for c in url))
     for html in (percent, entities):
         assert host in [h for _, h in find_hosting_links(html)]
+
+
+@given(
+    host=hosting_hosts(),
+    path=LABEL,
+    breaks=st.lists(
+        st.sampled_from(["\n", "\r\n", "\t", "&#10;", "&#9;", "%0A"]), max_size=3
+    ),
+    dot=st.sampled_from([".", "\u3002", "\uff0e", "\uff61", "&#46;", "%2E"]),
+    data=st.data(),
+)
+def test_property_whitespace_and_unicode_dots_never_hide_a_host(
+    host, path, breaks, dot, data
+):
+    # Whole characters or escapes, so a break never lands inside an escape.
+    url = [dot if char == "." else char for char in host]
+    for brk in breaks:
+        url.insert(data.draw(st.integers(0, len(url))), brk)
+    html = "<p>a</p>\n" + link("https://" + "".join(url) + "/" + path)
+    assert (2, host) in find_hosting_links(html)
+
+
+@given(
+    host=hosting_hosts(),
+    tail=st.lists(
+        st.text(alphabet="\u4f8b\u5b50\u00fcabc", min_size=1, max_size=5),
+        min_size=1,
+        max_size=2,
+    ),
+    tld=st.sampled_from(["org", "\u4e2d\u56fd", "com"]),
+    dot=st.sampled_from([".", "\u3002"]),
+)
+def test_property_a_longer_host_that_starts_like_a_hosting_one_passes(
+    host, tail, tld, dot
+):
+    longer = dot.join([host] + tail + [tld])
+    if is_hosting_host(longer):
+        return
+    assert find_hosting_links(link(f"https://{longer}/")) == []
 
 
 @given(host=other_hosts(), before=TEXT, after=TEXT, path=LABEL)

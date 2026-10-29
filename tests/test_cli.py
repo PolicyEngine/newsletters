@@ -227,3 +227,29 @@ class TestCLI:
         assert "policyengine.org" in result.output
         client.create_campaign.assert_not_called()
         client.upload_content.assert_not_called()
+
+    def test_cli_refuses_a_hosting_link_in_the_subject(self, runner, tmp_path, mocker):
+        """A hosting address in --subject stops the CLI before Mailchimp."""
+        html_path = tmp_path / "2026-11-03-us.html"
+        html_path.write_text("<html><body>Clean</body></html>")
+        client = mocker.patch("newsletter_uploader.cli.MailchimpClient").return_value
+
+        result = runner.invoke(
+            main,
+            [
+                str(html_path),
+                "--audience",
+                "us",
+                "--subject",
+                "New: ballot-measures-2026.vercel.app",
+                "--preview",
+                "Preview",
+                "--api-key",
+                "test-key-us5",
+            ],
+        )
+
+        assert result.exit_code == 1
+        assert "subject line" in result.output
+        client.create_campaign.assert_not_called()
+        client.upload_content.assert_not_called()

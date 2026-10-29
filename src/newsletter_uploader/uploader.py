@@ -8,6 +8,20 @@ from .hosting_links import check_no_hosting_links
 from .mailchimp_client import MailchimpClient
 
 
+def _refuse_hosting_links(
+    html_file: Path,
+    html_content: str,
+    subject: Optional[str],
+    preview_text: Optional[str],
+    title: Optional[str],
+) -> None:
+    """Raise HostingLinkError if any text bound for Mailchimp has a hosting address."""
+    check_no_hosting_links(html_content, source=html_file.name)
+    check_no_hosting_links(subject or "", source="The subject line")
+    check_no_hosting_links(preview_text or "", source="The preview text")
+    check_no_hosting_links(title or "", source="The campaign title")
+
+
 class NewsletterUploader:
     """Upload newsletters to Mailchimp as draft campaigns."""
 
@@ -43,8 +57,9 @@ class NewsletterUploader:
 
         Raises:
             FileNotFoundError: If HTML file doesn't exist
-            HostingLinkError: If the HTML links a hosting address such as
-                *.vercel.app, before anything reaches Mailchimp
+            HostingLinkError: If the HTML, subject line, preview text or title
+                carries a hosting address such as *.vercel.app, before
+                anything reaches Mailchimp
             Exception: If upload fails
         """
         # Read HTML file
@@ -52,7 +67,7 @@ class NewsletterUploader:
             raise FileNotFoundError(f"HTML file not found: {html_file}")
 
         html_content = html_file.read_text(encoding="utf-8")
-        check_no_hosting_links(html_content, source=html_file.name)
+        _refuse_hosting_links(html_file, html_content, subject, preview_text, title)
 
         # Generate title from filename if not provided
         if title is None:
@@ -104,8 +119,9 @@ class NewsletterUploader:
 
         Raises:
             FileNotFoundError: If HTML file doesn't exist
-            HostingLinkError: If the HTML links a hosting address such as
-                *.vercel.app, before anything reaches Mailchimp
+            HostingLinkError: If the HTML, subject line, preview text or title
+                carries a hosting address such as *.vercel.app, before
+                anything reaches Mailchimp
             Exception: If update fails
         """
         # Read HTML file
@@ -113,7 +129,7 @@ class NewsletterUploader:
             raise FileNotFoundError(f"HTML file not found: {html_file}")
 
         html_content = html_file.read_text(encoding="utf-8")
-        check_no_hosting_links(html_content, source=html_file.name)
+        _refuse_hosting_links(html_file, html_content, subject, preview_text, title)
 
         # Update campaign settings if provided
         if subject or preview_text or title:
