@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Dict, Optional
 
 from .audience import AudienceType, get_segment_opts
+from .hosting_links import check_no_hosting_links
 from .mailchimp_client import MailchimpClient
 
 
@@ -42,6 +43,8 @@ class NewsletterUploader:
 
         Raises:
             FileNotFoundError: If HTML file doesn't exist
+            HostingLinkError: If the HTML links a hosting address such as
+                *.vercel.app, before anything reaches Mailchimp
             Exception: If upload fails
         """
         # Read HTML file
@@ -49,6 +52,7 @@ class NewsletterUploader:
             raise FileNotFoundError(f"HTML file not found: {html_file}")
 
         html_content = html_file.read_text(encoding="utf-8")
+        check_no_hosting_links(html_content, source=html_file.name)
 
         # Generate title from filename if not provided
         if title is None:
@@ -100,6 +104,8 @@ class NewsletterUploader:
 
         Raises:
             FileNotFoundError: If HTML file doesn't exist
+            HostingLinkError: If the HTML links a hosting address such as
+                *.vercel.app, before anything reaches Mailchimp
             Exception: If update fails
         """
         # Read HTML file
@@ -107,6 +113,7 @@ class NewsletterUploader:
             raise FileNotFoundError(f"HTML file not found: {html_file}")
 
         html_content = html_file.read_text(encoding="utf-8")
+        check_no_hosting_links(html_content, source=html_file.name)
 
         # Update campaign settings if provided
         if subject or preview_text or title:

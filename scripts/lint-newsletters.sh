@@ -10,12 +10,16 @@ WARNINGS=0
 # to a full commit SHA (2026-09-08-us-v2.html was the first). Older editions
 # use branch names, so the branch-name warning below skips them.
 SHA_PINNED_FROM=20260908
+# Editions dated on or after this day may not link a hosting address such as
+# *.vercel.app; public links go to policyengine.org (Max, 2026-10-29). Older
+# editions went out as they are, so the error skips them.
+HOSTING_CHECKED_FROM=20261030
 SCRIPT_DIR="$(dirname "$0")"
 PYTHON="$(command -v python3 || true)"
 
 echo "Checking newsletter HTML files..."
 if [ -z "$PYTHON" ]; then
-    echo "  python3 not found, so the image-pinning warning is skipped."
+    echo "  python3 not found, so the image-pinning warning and the hosting-address check are skipped."
 fi
 
 for file in editions/*.html; do
@@ -45,6 +49,23 @@ for file in editions/*.html; do
     else
         edition_date=99999999
     fi
+    # Fail a newer edition that links a hosting address instead of
+    # policyengine.org. hosting_links.py decodes entities and percent-escapes
+    # and prints `line:host` for each hit.
+    if [ "$edition_date" -ge "$HOSTING_CHECKED_FROM" ] && [ -n "$PYTHON" ]; then
+        hosting=$(PYTHONPATH="$SCRIPT_DIR/../src" "$PYTHON" -m newsletter_uploader.hosting_links "$file") || true
+        if [ -n "$hosting" ]; then
+            echo "    ❌ ERROR: Link to a hosting address. Public links go to the page's policyengine.org route, never *.vercel.app, policyengine.github.io or another hosting address (see \"Links\" in CLAUDE.md)."
+            echo "$hosting"
+            if [ -n "$GITHUB_ACTIONS" ]; then
+                while IFS= read -r entry; do
+                    echo "::error file=$file,line=${entry%%:*}::Links ${entry#*:}, a hosting address. Link the policyengine.org route instead (see \"Links\" in CLAUDE.md)."
+                done <<< "$hosting"
+            fi
+            ERRORS=$((ERRORS + 1))
+        fi
+    fi
+
     if [ "$edition_date" -ge "$SHA_PINNED_FROM" ] && [ -n "$PYTHON" ]; then
         unpinned=$("$PYTHON" "$SCRIPT_DIR/unpinned_images.py" "$file") || unpinned=""
         if [ -n "$unpinned" ]; then

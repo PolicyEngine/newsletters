@@ -198,3 +198,32 @@ class TestCLI:
         )
         # File should not exist, so Click should error before we even try to upload
         assert result.exit_code != 0
+
+    def test_cli_refuses_hosting_links_before_mailchimp(self, runner, tmp_path, mocker):
+        """The CLI exits 1 and creates no campaign for a hosting link."""
+        html_path = tmp_path / "2026-11-03-us.html"
+        html_path.write_text(
+            '<html><body><a href="https://x.vercel.app/">Dashboard</a></body></html>'
+        )
+        client = mocker.patch("newsletter_uploader.cli.MailchimpClient").return_value
+
+        result = runner.invoke(
+            main,
+            [
+                str(html_path),
+                "--audience",
+                "us",
+                "--subject",
+                "Test",
+                "--preview",
+                "Preview",
+                "--api-key",
+                "test-key-us5",
+            ],
+        )
+
+        assert result.exit_code == 1
+        assert "x.vercel.app" in result.output
+        assert "policyengine.org" in result.output
+        client.create_campaign.assert_not_called()
+        client.upload_content.assert_not_called()

@@ -129,3 +129,36 @@ def test_refs_heads_is_an_error_that_points_to_sha_pinning(tmp_path):
     assert result.returncode == 1
     assert "full 40-character commit SHA" in result.stdout
     assert "/master/ or /main/" not in result.stdout
+
+
+VERCEL_LINK = '<a href="https://ballot-measures-2026.vercel.app/us/x">Dashboard</a>'
+
+
+@pytest.mark.parametrize(
+    "name, fails",
+    [
+        ("2026-10-29-us.html", False),
+        ("2026-10-30-us.html", True),
+        ("2027-01-01-uk.html", True),
+        ("welcome.html", True),
+    ],
+)
+def test_hosting_link_is_an_error_from_30_october_2026(tmp_path, name, fails):
+    result = run_lint(tmp_path, {name: VERCEL_LINK})
+    assert (result.returncode == 1) is fails
+    assert ("hosting address" in result.stdout) is fails
+    if fails:
+        assert "\n2:ballot-measures-2026.vercel.app" in result.stdout
+
+
+def test_hosting_link_github_actions_annotation(tmp_path):
+    result = run_lint(tmp_path, {NEW: VERCEL_LINK}, env={"GITHUB_ACTIONS": "true"})
+    assert result.returncode == 1
+    assert f"::error file=editions/{NEW},line=2::" in result.stdout
+
+
+def test_policyengine_org_links_pass(tmp_path):
+    html = '<a href="https://www.policyengine.org/us/ballot-measures-2026">D</a>'
+    result = run_lint(tmp_path, {NEW: html})
+    assert result.returncode == 0
+    assert "hosting address" not in result.stdout
