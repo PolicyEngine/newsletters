@@ -106,7 +106,7 @@
                                 </tr>
                             </table>
                             <p style="margin: 18px 0 0 0; font-size: 13px; line-height: 1.6; color: #64748B;">
-                                Also in this issue: <a href="#ballot" style="color: #319795; text-decoration: none; font-weight: 500;">Six more ballot measures</a> &middot; <a href="#bls" style="color: #319795; text-decoration: none; font-weight: 500;">BLS seminar</a> &middot; <a href="#spm" style="color: #319795; text-decoration: none; font-weight: 500;">Poverty prediction</a> &middot; <a href="#policybench" style="color: #319795; text-decoration: none; font-weight: 500;">PolicyBench</a> &middot; <a href="#joss" style="color: #319795; text-decoration: none; font-weight: 500;">JOSS paper</a> &middot; <a href="#model" style="color: #319795; text-decoration: none; font-weight: 500;">In the model</a> &middot; <a href="#axiom" style="color: #319795; text-decoration: none; font-weight: 500;">From the Axiom Foundation</a>
+                                Also in this issue: <a href="#ballot" style="color: #319795; text-decoration: none; font-weight: 500;">Six more ballot measures</a> &middot; <a href="#bls" style="color: #319795; text-decoration: none; font-weight: 500;">BLS seminar</a> &middot; <a href="#spm" style="color: #319795; text-decoration: none; font-weight: 500;">Poverty prediction</a> &middot; <a href="#policybench" style="color: #319795; text-decoration: none; font-weight: 500;">PolicyBench</a> &middot; <a href="#joss" style="color: #319795; text-decoration: none; font-weight: 500;">JOSS paper</a> &middot; <a href="#model" style="color: #319795; text-decoration: none; font-weight: 500;">Model updates</a> &middot; <a href="#axiom" style="color: #319795; text-decoration: none; font-weight: 500;">From the Axiom Foundation</a>
                             </p>
                         </td>
                     </tr>
@@ -203,17 +203,56 @@
                         </td>
                     </tr>
 
-                    <!-- Model coverage -->
+                    <!-- Model updates -->
                     <tr>
                         <td class="pad" style="padding: 32px 40px 0 40px;">
                             <a name="model"></a>
-                            <p style="margin: 0 0 6px 0; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #2C7A7B;">In the model</p>
-                            <p style="margin: 0 0 14px 0; font-size: 15px; line-height: 1.6; color: #475569;">
-                                Since September 8, we added regular heating assistance from LIHEAP and state energy programs in 26 states, two of them (Ohio and Nebraska) in part, and state supplements to SSI in 17 more states. The model now also computes payments under the federal student loan repayment plans, from Income-Based Repayment to the Repayment Assistance Plan that took effect on July 1, as well as New York City&rsquo;s income tax elimination credit and 12-month Medicaid postpartum coverage in the 50 jurisdictions that elected it.
+                            <p style="margin: 0 0 6px 0; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #2C7A7B;">Model updates &middot; Since September 8</p>
+                            <p style="margin: 0 0 6px 0; font-size: 15px; line-height: 1.6; color: #475569;">
+                                Highlights from more than 500 pull requests in policyengine-us, and from Microcosm, the open pipeline that builds our microdata:
                             </p>
-                            <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #475569;">
-                                It now uses USDA&rsquo;s fiscal year 2027 SNAP allotments, deductions and asset limits, and the 2027 Social Security and SSI cost-of-living parameters. We also corrected how SNAP treats child support paid, which the model had wrong for 46 jurisdictions in 2026, and counted IRA, 401(k) and other retirement plan distributions in state retirement income exclusions in 20 states, where state law allows. These changes span more than 260 policyengine-us releases since our September 8 newsletter.
-                            </p>
+                            <p style="margin: 14px 0 8px 0; font-size: 13px; font-weight: 700; color: #1D4044;"><a href="https://github.com/PolicyEngine/policyengine-us/blob/main/CHANGELOG.md" style="color: #2C7A7B; text-decoration: none;">US model &rarr;</a></p>
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td width="16" style="vertical-align: top; font-size: 14px; line-height: 1.6; color: #319795;">&bull;</td>
+                                                <td style="padding: 0 0 8px 0; font-size: 14px; line-height: 1.6; color: #475569;">Regular heating assistance from LIHEAP and state energy programs in 26 more states, two of them (Ohio and Nebraska) in part, and state supplements to SSI in 17 more states.</td>
+                                            </tr>
+                                            <tr>
+                                                <td width="16" style="vertical-align: top; font-size: 14px; line-height: 1.6; color: #319795;">&bull;</td>
+                                                <td style="padding: 0 0 8px 0; font-size: 14px; line-height: 1.6; color: #475569;">Payments under the federal student loan repayment plans, from Income-Based Repayment to the Repayment Assistance Plan that took effect on July 1.</td>
+                                            </tr>
+                                            <tr>
+                                                <td width="16" style="vertical-align: top; font-size: 14px; line-height: 1.6; color: #319795;">&bull;</td>
+                                                <td style="padding: 0 0 8px 0; font-size: 14px; line-height: 1.6; color: #475569;">New York City&rsquo;s income tax elimination credit, and 12-month Medicaid postpartum coverage in the 50 jurisdictions that elected it.</td>
+                                            </tr>
+                                            <tr>
+                                                <td width="16" style="vertical-align: top; font-size: 14px; line-height: 1.6; color: #319795;">&bull;</td>
+                                                <td style="padding: 0 0 8px 0; font-size: 14px; line-height: 1.6; color: #475569;">USDA&rsquo;s fiscal year 2027 SNAP allotments, deductions and asset limits; the 2027 Social Security and SSI cost-of-living parameters; and the 2027 premium tax credit percentages.</td>
+                                            </tr>
+                                            <tr>
+                                                <td width="16" style="vertical-align: top; font-size: 14px; line-height: 1.6; color: #319795;">&bull;</td>
+                                                <td style="padding: 0; font-size: 14px; line-height: 1.6; color: #475569;">Fixes to SNAP&rsquo;s treatment of child support paid, which the model had wrong for 46 jurisdictions in 2026, and to state retirement income exclusions, which now count IRA, 401(k) and other retirement plan distributions in 20 states.</td>
+                                            </tr>
+                            </table>
+                            <p style="margin: 18px 0 8px 0; font-size: 13px; font-weight: 700; color: #1D4044;"><a href="https://github.com/PolicyEngine/microcosm" style="color: #2C7A7B; text-decoration: none;">US data &rarr;</a></p>
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td width="16" style="vertical-align: top; font-size: 14px; line-height: 1.6; color: #319795;">&bull;</td>
+                                                <td style="padding: 0 0 8px 0; font-size: 14px; line-height: 1.6; color: #475569;">The default US build pools three years of the Current Population Survey, adding 2025 incomes from the file Census published on September 15.</td>
+                                            </tr>
+                                            <tr>
+                                                <td width="16" style="vertical-align: top; font-size: 14px; line-height: 1.6; color: #319795;">&bull;</td>
+                                                <td style="padding: 0 0 8px 0; font-size: 14px; line-height: 1.6; color: #475569;">State calibration to IRS returns and income by income band for 2023, with income over $1 million apart from $500,000 to $1 million.</td>
+                                            </tr>
+                                            <tr>
+                                                <td width="16" style="vertical-align: top; font-size: 14px; line-height: 1.6; color: #319795;">&bull;</td>
+                                                <td style="padding: 0 0 8px 0; font-size: 14px; line-height: 1.6; color: #475569;">Congressional district targets that reach the 119th Congress districts through each plan&rsquo;s census blocks, which corrects North Carolina.</td>
+                                            </tr>
+                                            <tr>
+                                                <td width="16" style="vertical-align: top; font-size: 14px; line-height: 1.6; color: #319795;">&bull;</td>
+                                                <td style="padding: 0; font-size: 14px; line-height: 1.6; color: #475569;">Usual weekly hours of work from the American Community Survey in local-area builds, which SNAP&rsquo;s work requirements turn on.</td>
+                                            </tr>
+                            </table>
                         </td>
                     </tr>
 
