@@ -295,6 +295,14 @@ def test_many_hits_on_one_line_stay_fast():
     assert time.perf_counter() - started < 5
 
 
+def test_unclosed_inline_tags_stay_fast():
+    started = time.perf_counter()
+    hits = find_hosting_links("<a " * 300000 + "x.vercel.app")
+    assert hits == [(1, "x.vercel.app")]
+    # Each unclosed tag scanned to the end of the line: 300 KB took 7.5 s.
+    assert time.perf_counter() - started < 5
+
+
 def test_plain_mentions_of_vercel_pass():
     html = "<p>We host dashboards on Vercel and Modal, and the API on Cloud Run.</p>"
     assert find_hosting_links(html) == []

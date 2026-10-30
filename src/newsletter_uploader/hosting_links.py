@@ -92,10 +92,11 @@ URL_ATTRIBUTES = frozenset(
 URL_WHITESPACE = re.compile("[\t\n\r]")
 
 # Inline tags don't break the text a reader sees: x.vercel<wbr>.app reads as
-# x.vercel.app.
+# x.vercel.app. A tag ends before the next "<", so a line of unclosed tags
+# stays linear.
 INLINE_TAG = re.compile(
     r"</?(?:a|abbr|b|bdi|bdo|big|cite|code|data|del|dfn|em|font|i|ins|kbd|mark|"
-    r"q|s|samp|small|span|strike|strong|sub|sup|time|tt|u|var|wbr)(?=[\s/>])[^>]*>",
+    r"q|s|samp|small|span|strike|strong|sub|sup|time|tt|u|var|wbr)(?=[\s/>])[^<>]*>",
     re.IGNORECASE,
 )
 
