@@ -162,3 +162,50 @@ def test_policyengine_org_links_pass(tmp_path):
     result = run_lint(tmp_path, {NEW: html})
     assert result.returncode == 0
     assert "hosting address" not in result.stdout
+
+
+@pytest.mark.parametrize(
+    "fake, status",
+    [
+        # The checker crashes.
+        ('echo "Traceback" >&2; exit 2', 2),
+        # It prints a hit but exits 0.
+        ('echo "2:x.vercel.app"; exit 0', 0),
+        # It exits 1 with nothing to show.
+        ("exit 1", 1),
+    ],
+)
+def test_a_failing_checker_fails_the_lint(tmp_path, fake, status):
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    python = bin_dir / "python3"
+    python.write_text(
+        "#!/bin/sh\n" f'case "$*" in *hosting_links*) {fake} ;; *) exit 0 ;; esac\n'
+    )
+    python.chmod(0o755)
+    path = f"{bin_dir}{os.pathsep}{os.environ['PATH']}"
+    result = run_lint(tmp_path, {NEW: "<p>Clean</p>"}, env={"PATH": path})
+    assert result.returncode == 1
+    assert f"checker exit {status}" in result.stdout
+    assert "All newsletter files passed" not in result.stdout
+
+
+@pytest.mark.parametrize(
+    "name, fails",
+    [
+        ("2025-12-09-uk-autumn-budget-social.md", False),
+        ("2026-11-03-us-social.md", True),
+    ],
+)
+def test_social_posts_in_markdown_are_checked(tmp_path, name, fails):
+    result = run_lint(tmp_path, {name: "Read it at x.vercel.app/us/x"})
+    assert (result.returncode == 1) is fails
+    assert ("hosting address" in result.stdout) is fails
+
+
+def test_root_social_posts_are_checked(tmp_path):
+    (tmp_path / "social-posts-2026.md").write_text("See _x.vercel.app_\n")
+    result = run_lint(tmp_path, {NEW: "<p>Clean</p>"})
+    assert result.returncode == 1
+    assert "social-posts-2026.md" in result.stdout
+    assert "1:x.vercel.app" in result.stdout

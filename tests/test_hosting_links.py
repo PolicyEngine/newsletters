@@ -1,5 +1,6 @@
 """Tests for the hosting-address check."""
 
+import time
 from pathlib import Path
 from urllib.parse import quote
 
@@ -10,6 +11,7 @@ from hypothesis import strategies as st
 from newsletter_uploader import hosting_links
 from newsletter_uploader.hosting_links import (
     HOSTING_DOMAINS,
+    HOSTING_HOSTS,
     HostingLinkError,
     check_no_hosting_links,
     find_hosting_links,
@@ -38,6 +40,7 @@ def link(url, text="See the dashboard"):
         "api-abc123-uc.a.run.app",
         "policyengine.appspot.com",
         "policyengine.github.io",
+        "theaxiomfoundation.github.io",
     ],
 )
 def test_hosting_hosts_are_flagged(host):
@@ -177,6 +180,121 @@ def test_a_space_or_a_sentence_break_ends_a_host():
     assert find_hosting_links(link("https://x.vercel. app/")) == []
 
 
+@pytest.mark.parametrize(
+    "html, hits",
+    [
+        # Outside a URL attribute a line break stays a break between words, so
+        # the host after it still counts...
+        (
+            '<img src="https://www.policyengine.org/a.png" '
+            'alt="Our calculator at\npolicyengine.github.io/tanf">',
+            [(2, "policyengine.github.io")],
+        ),
+        ('<img src="a.png" alt="Screenshot from\nvercel.com">', [(2, "vercel.com")]),
+        ('<img src="a.png" alt="Preview at&#10;vercel.app">', [(1, "vercel.app")]),
+        ('<p title="See\tvercel.app">a</p>', [(1, "vercel.app")]),
+        (
+            '--body="Hi Jane,\nThe preview lives at\npolicyengine.github.io/tanf"',
+            [(3, "policyengine.github.io")],
+        ),
+        # ...and two words never join into a host.
+        ('<img src="a.png" alt="We moved off Modal.\nRun the numbers">', []),
+        # Attribute names are case-insensitive.
+        ('<a HREF="https://x.vercel.&#10;app/">a</a>', [(1, "x.vercel.app")]),
+        # A value that runs past a missing closing quote into the markup after it
+        # doesn't join the lines it swallows.
+        (
+            '<a href="https://www.policyengine.org/x>broken\n'
+            "<p>We left Modal.\nRun it.</p>\n"
+            '<p class="note">x</p>',
+            [],
+        ),
+    ],
+)
+def test_only_url_attributes_drop_line_breaks(html, hits):
+    assert find_hosting_links(html) == hits
+
+
+@given(
+    word=st.from_regex(r"[A-Za-z]{1,8}", fullmatch=True),
+    brk=st.sampled_from(["\n", "\t", "&#10;", "\r\n"]),
+    host=st.sampled_from(HOSTING_DOMAINS + HOSTING_HOSTS),
+    attr=st.sampled_from(["alt", "title", "aria-label", "class"]),
+)
+def test_property_a_host_after_a_line_break_in_any_attribute_is_caught(
+    word, brk, host, attr
+):
+    html = (
+        f'<img src="https://www.policyengine.org/a.png" {attr}="{word}{brk}{host}/x">'
+    )
+    assert host in [h for _, h in find_hosting_links(html)]
+
+
+@pytest.mark.parametrize(
+    "html, hosts",
+    [
+        # The text a reader sees runs on through inline tags.
+        (link("https://www.policyengine.org/", "x.vercel<wbr>.app"), ["x.vercel.app"]),
+        (link("https://x.vercel.app/", "x.vercel<wbr>.app"), ["x.vercel.app"]),
+        (
+            '<p>x.<span style="color:red">vercel</span>.app and '
+            "<b>y</b>.netlify.app</p>",
+            ["x.vercel.app", "y.netlify.app"],
+        ),
+        # A line break is not an inline tag.
+        ("<p>see<br>vercel.app</p>", ["vercel.app"]),
+        ("<p>vercel<br>.app</p>", []),
+    ],
+)
+def test_hosts_split_by_inline_tags_are_read_as_shown(html, hosts):
+    assert [h for _, h in find_hosting_links(html)] == hosts
+
+
+@pytest.mark.parametrize(
+    "html, host",
+    [
+        # Markdown emphasis around a host.
+        ("<p>See _vercel.app_ now</p>", "vercel.app"),
+        (
+            "<p>See _policyengine.github.io/tanf_ for details</p>",
+            "policyengine.github.io",
+        ),
+        ("<p>See __x.vercel.app__</p>", "x.vercel.app"),
+    ],
+)
+def test_underscores_around_a_host_are_emphasis(html, host):
+    assert find_hosting_links(html) == [(1, host)]
+
+
+@pytest.mark.parametrize(
+    "char",
+    ["\u2064", "\u180e", "\u3164", "\uffa0", "\U0001d173", "\U000e0100", "\ufeff"],
+)
+def test_characters_a_hostname_ignores_drop_out(char):
+    assert find_hosting_links(link(f"https://x.ver{char}cel.app/")) == [
+        (1, "x.vercel.app")
+    ]
+
+
+def test_three_rounds_of_escaping_are_decoded():
+    assert find_hosting_links("<p>x%25252Evercel%25252Eapp</p>") == [
+        (1, "x.vercel.app")
+    ]
+
+
+def test_is_hosting_host_folds_the_host():
+    assert is_hosting_host("x.vercel\u3002app")
+    assert is_hosting_host("X.\uff36ercel.app")
+
+
+def test_many_hits_on_one_line_stay_fast():
+    started = time.perf_counter()
+    hits = find_hosting_links(" ".join(["x.vercel.app"] * 20000))
+    assert len(hits) == 20000
+    # Comparing every hit with every other one took over 10 s here.
+    assert time.perf_counter() - started < 5
+
+
 def test_plain_mentions_of_vercel_pass():
     html = "<p>We host dashboards on Vercel and Modal, and the API on Cloud Run.</p>"
     assert find_hosting_links(html) == []
@@ -280,6 +398,18 @@ def other_hosts(draw):
 @given(host=hosting_hosts(), before=TEXT, after=TEXT, path=LABEL)
 def test_property_any_hosting_host_in_any_text_is_caught(host, before, after, path):
     html = f"<p>{before}{link(f'https://{host}/{path}')}{after}</p>"
+    assert host in [h for _, h in find_hosting_links(html)]
+
+
+@given(
+    host=hosting_hosts(),
+    before=TEXT,
+    after=TEXT,
+    left=st.sampled_from([" ", "(", ":", ";", "!", "/", "<br>", "\u3000"]),
+    right=st.sampled_from([" ", ")", ",", ";", "!", "/", ". ", "<br>", "\u3000"]),
+)
+def test_property_a_host_in_running_text_is_caught(host, before, after, left, right):
+    html = f"<p>{before}{left}{host}{right}{after}</p>"
     assert host in [h for _, h in find_hosting_links(html)]
 
 

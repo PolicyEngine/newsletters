@@ -115,13 +115,13 @@ These came from the independent review of #31 (2026-10-27).
 
 Every link goes to policyengine.org, never to the address of the platform that hosts a page (Max, 2026-10-29: "never share vercel links publicly - should always be on policyengine.org, esp in newsletters"). A sent email can't be corrected.
 
-- **Never link** `*.vercel.app`, `vercel.com`, `policyengine.github.io`, `*.netlify.app`, `*.pages.dev`, `*.modal.run`, `*.run.app` or `*.appspot.com`. Dashboards and microsites live at their policyengine.org route, for example `https://www.policyengine.org/us/ballot-measures-2026`. `website/src/data/appZoneRoutes.ts` in policyengine-app-v2 lists every route.
+- **Never link** `*.vercel.app`, `vercel.com`, `policyengine.github.io`, `theaxiomfoundation.github.io`, `*.netlify.app`, `*.pages.dev`, `*.modal.run`, `*.run.app` or `*.appspot.com`. Dashboards and microsites live at their policyengine.org route, for example `https://www.policyengine.org/us/ballot-measures-2026`. `website/src/data/appZoneRoutes.ts` in policyengine-app-v2 lists every route.
 - **Curl each route for 200 before you upload.** If a route isn't live yet, get its appZoneRoutes PR merged and deployed before the send, or cut the link. Never swap in the Vercel URL to make a link work: that is how `2026-10-29-us.html` went out with seven `ballot-measures-2026.vercel.app` links.
 - Other people's sites stay as they are, including their own `github.io` pages (for example `fhoces.github.io`).
 - **Enforced:**
   - `upload-newsletter` refuses HTML, a subject line, preview text or a campaign title that carries any of these hosts. It runs the check before it calls Mailchimp, for new campaigns and for `--campaign-id` updates, so nothing reaches Mailchimp.
-  - The CI lint fails any edition dated 2026-10-30 or later that links one.
-  - The check (`src/newsletter_uploader/hosting_links.py`) reads a host the way a browser does. It decodes HTML entities and percent-escapes, drops tabs and newlines inside an attribute value, and folds Unicode dots (such as `。`), full-width letters and invisible characters. It also counts a host that shows only as link text.
+  - The CI lint fails any edition or Markdown social post dated 2026-10-30 or later (or undated) that links one. It also fails if the checker itself crashes.
+  - The check (`src/newsletter_uploader/hosting_links.py`) reads a host the way a browser or reader does. It decodes HTML entities and percent-escapes, drops tabs and newlines inside a URL attribute such as `href` or `src`, reads link text through inline tags such as `<wbr>` and `<span>`, and folds Unicode dots (such as `。`), full-width letters and invisible characters. It also counts a host that shows only as link text.
 - A reviewed exception goes in `ALLOWED_HOSTS` in that file.
 
 ## Creating New Newsletters
