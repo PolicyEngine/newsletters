@@ -111,6 +111,19 @@ These came from the independent review of #31 (2026-10-27).
 - **Make the hidden preheader match the campaign's preview text.** The preheader `<div>` text must be the same words as the Mailchimp campaign's preview text (the uploader's `--preview`, or the preview set in Mailchimp). If you change one, change the other. In #31 they differed: the file says "On Budget day at 4:30pm, we'll present our first estimates and take your questions." while the campaign's preview was "We'll present our first estimates on Budget day and take your questions."
 - **Give every `linear-gradient` a solid `background-color` fallback.** caniemail lists no `linear-gradient` support in any Outlook client at the latest version it tested: Windows desktop 2007–2019 (where gradients need VML), Windows Mail, Outlook.com, and the Mac, iOS and Android apps. Without a fallback the element has no background there. The hero and the feature card already do this: `background: linear-gradient(...); background-color:#234E52;`. Put `background-color` after the `background` shorthand, because the shorthand resets it. The hero's 48×3px accent bar has no fallback in either edition, so it doesn't show in Outlook. Don't just add `background-color` to it: caniemail says classic Outlook for Windows ignores `width` and `height` on a `<div>`, so the colour would likely spread across the hero (untested). To give it one, rebuild it as a 48×3 table cell with `bgcolor` and `font-size:0;line-height:0;`, and test that in Outlook before sending.
 
+### Links
+
+Every link goes to policyengine.org, never to the address of the platform that hosts a page (Max, 2026-10-29: "never share vercel links publicly - should always be on policyengine.org, esp in newsletters"). A sent email can't be corrected.
+
+- **Never link** `*.vercel.app`, `vercel.com`, `policyengine.github.io`, `theaxiomfoundation.github.io`, `*.netlify.app`, `*.pages.dev`, `*.modal.run`, `*.run.app` or `*.appspot.com`. Dashboards and microsites live at their policyengine.org route, for example `https://www.policyengine.org/us/ballot-measures-2026`. `website/src/data/appZoneRoutes.ts` in policyengine-app-v2 lists every route.
+- **Curl each route for 200 before you upload.** If a route isn't live yet, get its appZoneRoutes PR merged and deployed before the send, or cut the link. Never swap in the Vercel URL to make a link work: that is how `2026-10-29-us.html` went out with seven `ballot-measures-2026.vercel.app` links.
+- Other people's sites stay as they are, including their own `github.io` pages (for example `fhoces.github.io`).
+- **Enforced:**
+  - `upload-newsletter` refuses HTML, a subject line, preview text or a campaign title that carries any of these hosts. It runs the check before it calls Mailchimp, for new campaigns and for `--campaign-id` updates, so nothing reaches Mailchimp.
+  - The CI lint fails any edition or Markdown social post dated 2026-10-30 or later (or undated) that links one. It also fails if the checker itself crashes.
+  - The check (`src/newsletter_uploader/hosting_links.py`) reads a host the way a browser or reader does. It decodes HTML entities and percent-escapes, drops tabs and newlines inside a URL attribute such as `href` or `src`, reads link text through inline tags such as `<wbr>` and `<span>`, and folds Unicode dots (such as `。`), full-width letters and invisible characters. It also counts a host that shows only as link text.
+- A reviewed exception goes in `ALLOWED_HOSTS` in that file.
+
 ## Creating New Newsletters
 
 **IMPORTANT: Always start from the most recent newsletter as a template.** The template structure evolves over time, so copying from the latest edition ensures you use current styling, layout patterns, and best practices.
@@ -123,6 +136,7 @@ These came from the independent review of #31 (2026-10-27).
    - Mailchimp merge tags in footer
    - External assets use full URLs pinned to a commit SHA (no relative paths; see "Images" above)
    - The hidden preheader matches the campaign's preview text
+   - Every link goes to policyengine.org, never a hosting address (see "Links" above)
 
 ## Email Compatibility
 
@@ -205,28 +219,27 @@ The command creates a **draft campaign** (not sent) that you can review, test, a
 
 ### Updating Existing Drafts
 
-**IMPORTANT:** When making changes to a newsletter that has already been uploaded to Mailchimp, **update the existing campaign** instead of creating a new one. Use the Mailchimp API to update the campaign content:
+**IMPORTANT:** When making changes to a newsletter that has already been uploaded to Mailchimp, **update the existing campaign** instead of creating a new one. Use `upload-newsletter` with `--campaign-id`, which runs the same checks as a new upload (see "Links"):
 
+```bash
+upload-newsletter editions/your-newsletter.html \
+  --campaign-id existing-campaign-id \
+  --subject "Same subject" \
+  --preview "Same preview text as the hidden preheader"
+```
+
+Don't PUT the HTML to Mailchimp's `/content` endpoint yourself; that skips the checks.
+
+To delete an accidentally created duplicate campaign:
 ```python
 import requests
 
 API_KEY = "your-api-key"
 SERVER = "us5"  # from API key suffix
-CAMPAIGN_ID = "existing-campaign-id"
+CAMPAIGN_ID = "duplicate-campaign-id"
 
-url = f"https://{SERVER}.api.mailchimp.com/3.0/campaigns/{CAMPAIGN_ID}/content"
-auth = ("anystring", API_KEY)
-
-with open("editions/your-newsletter.html", "r") as f:
-    html_content = f.read()
-
-response = requests.put(url, auth=auth, json={"html": html_content})
-```
-
-To delete an accidentally created duplicate campaign:
-```python
 url = f"https://{SERVER}.api.mailchimp.com/3.0/campaigns/{CAMPAIGN_ID}"
-requests.delete(url, auth=auth)
+requests.delete(url, auth=("anystring", API_KEY))
 ```
 
 ### Development

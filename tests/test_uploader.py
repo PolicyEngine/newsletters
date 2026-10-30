@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from newsletter_uploader.audience import AudienceType
+from newsletter_uploader.hosting_links import HostingLinkError
 from newsletter_uploader.uploader import NewsletterUploader
 
 
@@ -163,3 +164,44 @@ class TestNewsletterUploader:
                 subject="Test",
                 preview_text="Preview",
             )
+
+    @pytest.mark.parametrize("method", ["upload", "update"])
+    def test_hosting_link_stops_before_mailchimp(
+        self, uploader, mock_client, tmp_path, method
+    ):
+        """An edition linking a hosting address never reaches Mailchimp."""
+        html_path = tmp_path / "2026-11-03-us.html"
+        html_path.write_text(
+            '<html><body><a href="https://ballot-measures-2026.vercel.app/us/x">'
+            "Dashboard</a></body></html>"
+        )
+
+        with pytest.raises(HostingLinkError, match="ballot-measures-2026.vercel.app"):
+            if method == "upload":
+                uploader.upload(
+                    html_file=html_path,
+                    audience=AudienceType.US,
+                    subject="Test",
+                    preview_text="Preview",
+                )
+            else:
+                uploader.update(campaign_id="campaign123", html_file=html_path)
+
+        assert mock_client.mock_calls == []
+
+    @pytest.mark.parametrize("method", ["upload", "update"])
+    @pytest.mark.parametrize("field", ["subject", "preview_text", "title"])
+    def test_hosting_link_in_campaign_text_stops_before_mailchimp(
+        self, uploader, mock_client, html_file, method, field
+    ):
+        """A hosting address in the subject, preview or title stops the upload."""
+        text = {"subject": "Test", "preview_text": "Preview", "title": None}
+        text[field] = "See x.vercel\u3002app now"
+
+        with pytest.raises(HostingLinkError, match="x.vercel.app"):
+            if method == "upload":
+                uploader.upload(html_file=html_file, audience=AudienceType.US, **text)
+            else:
+                uploader.update(campaign_id="campaign123", html_file=html_file, **text)
+
+        assert mock_client.mock_calls == []
