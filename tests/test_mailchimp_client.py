@@ -1,9 +1,15 @@
 """Tests for Mailchimp client."""
 
+import json
+
 import pytest
 import responses
 
-from newsletter_uploader.mailchimp_client import MailchimpClient
+from newsletter_uploader.mailchimp_client import (
+    GA_NAME_MAX,
+    MailchimpClient,
+    ga_campaign_name,
+)
 
 
 @pytest.fixture
@@ -124,3 +130,52 @@ class TestMailchimpClient:
                 title="Campaign",
                 segment_opts=None,
             )
+
+
+class TestGoogleAnalyticsTracking:
+    """Every created campaign has Google Analytics link tracking on."""
+
+    def test_ga_name_from_edition_title(self):
+        assert ga_campaign_name("2026-10-26-uk") == "pe-newsletter-2026-10-26-uk"
+
+    def test_ga_name_is_slugged_and_within_limit(self):
+        name = ga_campaign_name("Autumn Budget: réforme " * 10)
+        assert name.startswith("pe-newsletter-autumn-budget-reforme")
+        assert len(name) <= GA_NAME_MAX
+        assert not name.endswith("-")
+
+    def test_ga_name_falls_back_for_empty_slug(self):
+        assert ga_campaign_name("!!!") == "pe-newsletter-edition"
+
+    @responses.activate
+    def test_create_campaign_turns_on_ga_tracking(self, client):
+        responses.post(
+            "https://us5.api.mailchimp.com/3.0/campaigns",
+            json={"id": "campaign123"},
+            status=200,
+        )
+
+        client.create_campaign(subject="S", preview_text="P", title="2026-11-10-us")
+
+        body = json.loads(responses.calls[0].request.body)
+        assert body["tracking"]["google_analytics"] == "pe-newsletter-2026-11-10-us"
+        assert body["tracking"]["html_clicks"] is True
+        assert body["tracking"]["opens"] is True
+
+    @responses.activate
+    def test_create_campaign_accepts_explicit_ga_name(self, client):
+        responses.post(
+            "https://us5.api.mailchimp.com/3.0/campaigns",
+            json={"id": "campaign123"},
+            status=200,
+        )
+
+        client.create_campaign(
+            subject="S",
+            preview_text="P",
+            title="Anything",
+            google_analytics="pe-webinar-cpid",
+        )
+
+        body = json.loads(responses.calls[0].request.body)
+        assert body["tracking"]["google_analytics"] == "pe-webinar-cpid"

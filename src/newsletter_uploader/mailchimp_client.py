@@ -1,8 +1,31 @@
 """Mailchimp API client for campaign management."""
 
+import re
+import unicodedata
 from typing import Dict, Optional
 
 import requests
+
+# Mailchimp's limit for tracking.google_analytics.
+GA_NAME_MAX = 50
+GA_NAME_PREFIX = "pe-newsletter-"
+
+
+def ga_campaign_name(title: str) -> str:
+    """Google Analytics campaign name (utm_campaign) for a newsletter.
+
+    Deterministic: the same title always gives the same name, so GA4 can
+    group sends by edition. ``2026-10-26-uk`` gives
+    ``pe-newsletter-2026-10-26-uk``. The result is at most 50 characters,
+    Mailchimp's limit for the field.
+    """
+    ascii_title = (
+        unicodedata.normalize("NFKD", title).encode("ascii", "ignore").decode()
+    )
+    slug = re.sub(r"[^a-z0-9]+", "-", ascii_title.lower()).strip("-")
+    room = GA_NAME_MAX - len(GA_NAME_PREFIX)
+    slug = slug[:room].rstrip("-") or "edition"
+    return f"{GA_NAME_PREFIX}{slug}"
 
 
 class MailchimpClient:
@@ -31,9 +54,14 @@ class MailchimpClient:
         segment_opts: Optional[Dict] = None,
         from_name: str = "PolicyEngine",
         reply_to: str = "hello@policyengine.org",
+        google_analytics: Optional[str] = None,
     ) -> Dict:
         """
         Create a new Mailchimp campaign.
+
+        Google Analytics link tracking is always on: Mailchimp adds
+        ``utm_campaign`` (and ``utm_source``/``utm_medium``) to every link,
+        so GA4 attributes the visits to the edition.
 
         Args:
             subject: Email subject line
@@ -42,6 +70,8 @@ class MailchimpClient:
             segment_opts: Optional audience segment configuration
             from_name: Sender name
             reply_to: Reply-to email address
+            google_analytics: GA campaign name (utm_campaign); defaults to
+                ``ga_campaign_name(title)``
 
         Returns:
             Campaign data from Mailchimp API
@@ -60,6 +90,12 @@ class MailchimpClient:
                 "reply_to": reply_to,
                 "auto_footer": False,
                 "inline_css": False,
+            },
+            "tracking": {
+                "opens": True,
+                "html_clicks": True,
+                "text_clicks": True,
+                "google_analytics": google_analytics or ga_campaign_name(title),
             },
         }
 
