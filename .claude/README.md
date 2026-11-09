@@ -104,12 +104,14 @@ Opens HTML in browser, captures screenshots at different viewport sizes, and val
 .claude/
 ├── agents/
 │   ├── newsletter-writer.md
-│   └── campaign-analyzer.md
+│   ├── campaign-analyzer.md
+│   └── newsletter-previewer.md
 ├── commands/
 │   ├── create-newsletter.md
 │   ├── campaign-stats.md
 │   ├── sync-countries.md
-│   └── upload-draft.md
+│   ├── upload-draft.md
+│   └── preview-newsletter.md
 └── README.md (this file)
 ```
 
