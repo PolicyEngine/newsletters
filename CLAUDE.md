@@ -265,12 +265,14 @@ Custom subagents and slash commands for newsletter workflow (see `.claude/README
 **Subagents:**
 - `newsletter-writer` - Converts research posts to newsletter HTML sections
 - `campaign-analyzer` - Analyzes Mailchimp performance data
+- `newsletter-previewer` - Opens newsletter HTML in a browser, captures screenshots, and validates email compatibility
 
 **Slash Commands:**
 - `/create-newsletter --posts post1,post2 --event event-slug --audience uk`
 - `/campaign-stats 2024-10-29`
 - `/sync-countries`
 - `/upload-draft editions/file.html --audience uk --subject "..." --preview "..."`
+- `/preview-newsletter editions/file.html`
 
 Example workflow:
 ```bash
