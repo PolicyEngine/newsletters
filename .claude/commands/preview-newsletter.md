@@ -16,26 +16,28 @@ Open the newsletter in a browser, capture screenshots, and validate email compat
 Use the `newsletter-previewer` subagent to:
 
 1. **Open in browser** - Display the HTML for visual review
-2. **Capture screenshots** - Desktop (600px) and mobile (320px) views
+2. **Capture screenshots** - Desktop (700px, wider than the template's 620px mobile breakpoint) and mobile (320px) views
 3. **Validate compatibility** - Check for email client issues
 4. **Review content** - Verify links, images, styling
 
 ## What Gets Checked
 
 **Email Compatibility:**
-- Inline styles only (no external CSS)
+- Inline styles, apart from the mobile `<style>` block and the Google Fonts `<link>`
 - 600px max width
-- No modern CSS features
+- No modern CSS features or CSS variables
 - Table-based layouts
-- Full URLs for images
-- Mailchimp merge tags present
+- Full image URLs pinned to a commit SHA, not a branch name or `main`
+- A solid `background-color` behind the hero and feature-card gradients (the hero's accent bar has none; see `CLAUDE.md`)
+- Hidden preheader matches the campaign's preview text
+- All four Mailchimp merge tags present
 
 **Visual Quality:**
 - Logo renders
-- Colors match brand palette
-- Buttons styled correctly
+- Colors match the palette in `CLAUDE.md` (Inter, teal, dark `#0F1419` page)
+- Buttons styled correctly (teal `#319795`)
 - Text readable and properly spaced
-- Cards and sections have proper borders
+- White sections separated by `#E2E8F0` dividers
 
 **Content:**
 - All links valid and working
