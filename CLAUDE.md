@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is a simple newsletter repository containing HTML email templates for PolicyEngine's Mailchimp campaigns. No build tools, testing frameworks, or development servers are needed - this is pure HTML/CSS.
+This repository holds the HTML email templates for PolicyEngine's Mailchimp campaigns, and a Python package (`newsletter_uploader`) that uploads them and checks, before a send, that every analysis an edition links has a fresh comparables search. The editions themselves are plain HTML/CSS with no build step.
 
 ## Repository Structure
 
@@ -137,6 +137,20 @@ Every link goes to policyengine.org, never to the address of the platform that h
    - External assets use full URLs pinned to a commit SHA (no relative paths; see "Images" above)
    - The hidden preheader matches the campaign's preview text
    - Every link goes to policyengine.org, never a hosting address (see "Links" above)
+4. **Fresh comparables before sending (Max, 2026-10-21).** Every policyengine.org
+   analysis the edition links needs a comparables search recorded in
+   PolicyEngine/policyengine-scorecard on the send date or in the scorecard's promotion
+   window before it (7 days by default, counting both ends), against the results the
+   analysis reads now, with no gap still pending
+   (`python -m newsletter_uploader.comparables --require-dates editions/<file>`).
+   For any it lists, run the comparables review with search kind `prepromotion` (the
+   PolicyEngine plugin's `policyengine-comparables-review` skill) first. Name the file
+   for its send date: CI checks the editions a change adds or modifies on their dates,
+   and `upload-newsletter` refuses an undated file and judges the edition on the later
+   of its date and the day you upload. The same applies to the social posts kept beside
+   an edition, which live in `editions/` as `<date>-<audience>-social.md` (CI fails a social
+   post anywhere else). The check confirms the search is fresh; it does not put the comparable
+   in the edition.
 
 ## Email Compatibility
 
@@ -168,7 +182,7 @@ Use a full commit SHA, not a branch name or `main`; see "Images" under "Newslett
 
 ## File Naming Conventions
 
-- Newsletter editions: `YYYY-MM-DD-{audience}.html` (e.g., `2026-10-20-uk.html`). The file name carries the planned date and isn't renamed if the send moves; the `<title>` and header carry the send date (`2026-10-20-uk.html` is dated 21 October, `2026-10-26-uk.html` 27 October).
+- Newsletter editions: `YYYY-MM-DD-{audience}.html` or `YYYY-MM-DD.html`. The file name carries the planned date and is not renamed if the send moves; the `<title>` and header carry the send date. The comparables check uses the file date in CI and the later of the file date and today on upload.
 - Images: Descriptive names in `assets/images/`
 
 ## Configuration
@@ -179,7 +193,7 @@ Use a full commit SHA, not a branch name or `main`; see "Images" under "Newslett
 
 ## Uploading to Mailchimp
 
-This repo includes a Python package (`newsletter_uploader`) with full test coverage.
+This repo includes a Python package (`newsletter_uploader`), tested with pytest.
 
 ### Installation
 
@@ -219,7 +233,7 @@ The command creates a **draft campaign** (not sent) that you can review, test, a
 
 ### Updating Existing Drafts
 
-**IMPORTANT:** When making changes to a newsletter that has already been uploaded to Mailchimp, **update the existing campaign** instead of creating a new one. Use `upload-newsletter` with `--campaign-id`, which runs the same checks as a new upload (see "Links"):
+**IMPORTANT:** When making changes to a newsletter that has already been uploaded to Mailchimp, **update the existing campaign** instead of creating a new one. Use `upload-newsletter` with `--campaign-id`, which runs the same hosting-link and fresh-comparables checks as a new upload:
 
 ```bash
 upload-newsletter editions/your-newsletter.html \
@@ -228,7 +242,8 @@ upload-newsletter editions/your-newsletter.html \
   --preview "Same preview text as the hidden preheader"
 ```
 
-Don't PUT the HTML to Mailchimp's `/content` endpoint yourself; that skips the checks.
+Do not PUT the HTML to Mailchimp's `/content` endpoint yourself; that skips the checks.
+
 
 To delete an accidentally created duplicate campaign:
 ```python
@@ -245,7 +260,7 @@ requests.delete(url, auth=("anystring", API_KEY))
 ### Development
 
 ```bash
-# Run tests (93% coverage)
+# Run tests (with coverage: pytest --cov=newsletter_uploader)
 pytest -v
 
 # Format and lint
@@ -255,7 +270,7 @@ ruff check src/ tests/
 
 The package is structured with:
 - `src/newsletter_uploader/` - Core package modules
-- `tests/` - Comprehensive test suite
+- `tests/` - pytest suite
 - CI runs on GitHub Actions for Python 3.8-3.11
 
 ## Claude Code Automations
