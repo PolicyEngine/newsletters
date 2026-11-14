@@ -256,7 +256,7 @@ ruff check src/ tests/
 The package is structured with:
 - `src/newsletter_uploader/` - Core package modules
 - `tests/` - Comprehensive test suite
-- CI runs on GitHub Actions for Python 3.8-3.11
+- CI runs on GitHub Actions for Python 3.11 and 3.15
 
 ## Claude Code Automations
 
