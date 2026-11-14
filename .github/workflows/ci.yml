@@ -60,21 +60,16 @@ jobs:
             echo "::error::cannot read the base commit $BASE_SHA"
             exit 1
           fi
-          git diff --name-only --diff-filter=AMR "$BASE_SHA" HEAD > "$RUNNER_TEMP/all-changed.txt"
-          # Social posts live in editions/, named <date>-<audience>-social.md;
-          # one anywhere else could not be checked.
-          if grep -iE '(^|/)[^/]*social[^/]*\.md$' "$RUNNER_TEMP/all-changed.txt" | grep -v '^editions/' > "$RUNNER_TEMP/misplaced.txt"; then
-            echo "::error::social posts go in editions/ as <date>-<audience>-social.md, so their comparables can be checked:"
-            cat "$RUNNER_TEMP/misplaced.txt"
-            exit 1
-          fi
-          grep -iE '^editions/.*\.(html?|md)$' "$RUNNER_TEMP/all-changed.txt" > "$RUNNER_TEMP/changed.txt" || true
-          echo "Changed editions:"; cat "$RUNNER_TEMP/changed.txt"
-          if [ ! -s "$RUNNER_TEMP/changed.txt" ]; then
+          git diff --name-only -z --diff-filter=AMR "$BASE_SHA" HEAD > "$RUNNER_TEMP/all-changed"
+          # Keep Git's NUL delimiters through selection and checker invocation,
+          # so Unicode and control characters cannot hide a changed edition.
+          # The selector also rejects social posts outside editions/.
+          python scripts/select_changed_editions.py "$RUNNER_TEMP/all-changed" "$RUNNER_TEMP/changed"
+          if [ ! -s "$RUNNER_TEMP/changed" ]; then
             echo "No edition changed; nothing to check."
             exit 0
           fi
-          xargs -d '\n' python -m newsletter_uploader.comparables --require-dates < "$RUNNER_TEMP/changed.txt"
+          xargs -0 python -m newsletter_uploader.comparables --require-dates < "$RUNNER_TEMP/changed"
 
   test:
     runs-on: ubuntu-latest

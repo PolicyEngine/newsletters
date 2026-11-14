@@ -388,8 +388,10 @@ def test_a_shared_host_leads_only_to_the_analyses_under_the_path():
     ]
     assert targets("https://policyengine.github.io/plugin-blog/") == []
     assert targets("https://marriage-zeta-beryl.vercel.app/us/marriage") == [
-        entry(("app", "uk", "marriage")),
         entry(("app", "us", "marriage")),
+    ]
+    assert targets("https://marriage-zeta-beryl.vercel.app/us/marriage?country=uk") == [
+        entry(("app", "uk", "marriage")),
     ]
     assert targets("https://unrelated.vercel.app/") == []
 

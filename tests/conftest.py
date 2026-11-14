@@ -9,11 +9,15 @@ from newsletter_uploader import comparables
 
 @pytest.fixture(autouse=True)
 def offline_comparables(tmp_path_factory, monkeypatch):
-    """The comparables check reads local, empty registries and a valid empty
-    index, so no test reaches the network; tests that need data pass their
-    own sources."""
+    """Use consistent local registries and an empty index without networking.
+
+    The route map's sentinel app exists in its registry; tests that need
+    analyses pass their own sources.
+    """
     root = tmp_path_factory.mktemp("comparables-sources")
-    (root / "apps.json").write_text("[]")
+    (root / "apps.json").write_text(
+        json.dumps([{"slug": "none", "countryId": "us", "displayWithResearch": True}])
+    )
     (root / "posts.json").write_text("[]")
     (root / "index.json").write_text(
         json.dumps(
