@@ -21,7 +21,7 @@ Create a new newsletter HTML file from PolicyEngine research posts and optional 
 
 2. **For each post**:
    - Use the `newsletter-writer` subagent to generate HTML section
-   - Find post in `../policyengine-app/src/posts/articles/`
+   - Find post in `../policyengine-app-v2/app/src/data/posts/articles/`. The site builds each slug from the file name, in lowercase with `-` for `_`, and the file ends in `.md` or `.ipynb`
    - Generate a white `section-pad` section with key findings, an optional image and the teal button
 
 3. **Compile newsletter** following "Newsletter Template Structure" in `CLAUDE.md`:
