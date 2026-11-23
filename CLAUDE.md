@@ -23,7 +23,12 @@ newsletters/
 
 ## Newsletter Template Structure
 
-This describes the current template as used by the two latest editions, `editions/2026-10-20-uk.html` (#28) and `editions/2026-10-26-uk.html` (#31). Editions from `2025-11-26-uk-prebudget.html` on use Inter and the teal palette, except `2025-12-08-uk-autumn-budget.html`. Editions before that use Roboto (except `2024-03-28.html`, which uses Helvetica Neue), most with a blue palette (`#2C6496`), so don't copy from them.
+UK and US editions use different layouts, so copy the latest edition for your audience (see "Creating New Newsletters").
+
+- **UK layout** (dark page, teal gradient hero, white sections): "Head" through "Images" below describe it, from `editions/2026-10-20-uk.html` (#28) and `editions/2026-10-26-uk.html` (#31). "The 29 October UK edition" lists what `editions/2026-10-29-uk.html` adds.
+- **US layout** (light grey page, bordered white container, no gradients): "US layout" lists how it differs. `editions/2026-09-08-us-v2.html` first used it, and `editions/2026-10-29-us.html` follows it. The US editions from `2026-01-30-us.html` to `2026-05-19-us.html` have a dark page and gradients, so don't copy from them.
+
+Editions from `2025-11-26-uk-prebudget.html` on use Inter and the teal palette, except `2025-12-08-uk-autumn-budget.html`. Editions before that use Roboto (except `2024-03-28.html`, which uses Helvetica Neue), most with a blue palette (`#2C6496`), so don't copy from them.
 
 ### Head
 
@@ -32,7 +37,7 @@ This describes the current template as used by the two latest editions, `edition
   ```html
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   ```
-  `<body>` sets `font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;` so clients that ignore the `<link>`, such as Gmail, use a system sans. Classic Outlook for Windows (2007–2016) is the exception: caniemail notes that it ignores the stack for a font declared with `@font-face` and falls back to Times New Roman unless `mso-font-alt` sets the fallback, and neither edition sets it. The `h1` and the card `h2` ask for `font-weight:800`, which the link doesn't load, so they render at 700 where Inter loads; add `800` to `wght@` if you want the heavier weight.
+  `<body>` sets `font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;` so clients that ignore the `<link>`, such as Gmail, use a system sans. Classic Outlook for Windows (2007–2016) is the exception: caniemail notes that it ignores the stack for a font declared with `@font-face` and falls back to Times New Roman unless `mso-font-alt` sets the fallback, and the editions described here don't set it. The `h1` and the card `h2` ask for `font-weight:800`, which the link doesn't load, so they render at 700 where Inter loads; add `800` to `wght@` if you want the heavier weight.
 - **Mobile media query**: apart from the font `<link>`, the only CSS outside inline `style` attributes is one block in `<head>`. It overrides inline values with `!important`, keyed to classes on the container table, its cells and the headings:
   ```html
   <style type="text/css">
@@ -49,7 +54,7 @@ This describes the current template as used by the two latest editions, `edition
 
 ### Layout, top to bottom
 
-The layout is nested tables with inline styles.
+Both layouts use nested tables with inline styles. This list follows the UK layout.
 
 1. `<body>` with `margin:0;padding:0;background-color:#0F1419;` and the font stack above.
 2. **Hidden preheader**, first thing in `<body>`: `<div style="display:none;max-height:0;overflow:hidden;">…</div>`. See the preview-text note below.
@@ -77,7 +82,7 @@ The layout is nested tables with inline styles.
 
 ### Palette
 
-Hard-code these hex values inline. Don't use CSS variables: caniemail lists Gmail as unable to declare custom properties and most Outlook clients as not supporting them. Most values are `@policyengine/ui-kit` tokens (`src/theme/tokens.css`), named here so new shades come from the same scales.
+Hard-code these hex values inline. Don't use CSS variables: caniemail lists Gmail as unable to declare custom properties and most Outlook clients as not supporting them. Most values are `@policyengine/ui-kit` tokens (`src/theme/tokens.css`), named here so new shades come from the same scales. This table lists the UK layout's colours; "US layout" adds four.
 
 | Hex | ui-kit token | Used for |
 |---|---|---|
@@ -93,23 +98,84 @@ Hard-code these hex values inline. Don't use CSS variables: caniemail lists Gmai
 | `#475569` | `--color-gray-600` | body text |
 | `#E2E8F0` | `--color-gray-200` | section dividers, image borders |
 | `#64748B` | `--color-gray-500` | footer text and links |
-| `#4B5563` | none | footer postal address (`*|LIST:ADDRESSLINE|*`) |
+| `#4B5563` | none | footer postal address (the `LIST:ADDRESSLINE` merge tag) |
 
 ### Images
 
-Every `src` is an absolute `raw.githubusercontent.com` URL pinned to a full 40-character commit SHA, never a branch name:
+Pin every `src` to a full 40-character commit SHA with an absolute `raw.githubusercontent.com` URL, never a branch name. Every edition described here does this, except for the three Mailchimp-hosted images in `2026-10-29-uk.html` (see "The 29 October UK edition").
 
-- **Edition images**: `https://raw.githubusercontent.com/PolicyEngine/newsletters/<commit-sha>/assets/images/<name>.png`. Both latest editions use `43919d6d0b6509a0407203fa7f268e90f9122968`, the commit that added the 20 October images. A commit can't contain its own SHA, so commit and push the images first, then point the HTML at that commit (#28 did this in `646f901`).
-- **Logo**: the white PNG from policyengine-app-v2, pinned the same way: `https://raw.githubusercontent.com/PolicyEngine/policyengine-app-v2/2e38710033e846461217291328a3748d1cd45de7/app/public/assets/logos/policyengine/white.png`.
+- **Edition images**: `https://raw.githubusercontent.com/PolicyEngine/newsletters/<commit-sha>/assets/images/<name>.png`. `2026-10-20-uk.html` and `2026-10-26-uk.html` both use `43919d6d0b6509a0407203fa7f268e90f9122968`, the commit that added the 20 October images. A commit can't contain its own SHA, so commit and push the images first, then point the HTML at that commit (#28 did this in `646f901`).
+- **Logo**: a PNG from policyengine-app-v2, pinned the same way. The UK layout uses `white.png`: `https://raw.githubusercontent.com/PolicyEngine/policyengine-app-v2/2e38710033e846461217291328a3748d1cd45de7/app/public/assets/logos/policyengine/white.png`. The US layout uses `teal.png` from the same folder and commit.
 
 A branch URL stops working once the branch is deleted after merge, and a `main` URL changes if the file is replaced later. A pinned URL keeps showing what was sent.
+
+### The 29 October UK edition
+
+`2026-10-29-uk.html` follows the UK layout with these additions:
+
+- **Full-width images** between a section's text cells: a `<td style="background-color:#FFFFFF;padding:0;">` that holds an image with `width="600"` and `style="width:100%;max-width:600px;height:auto;display:block;border:0;"`. The text cells around them use `class="text-pad"`, so its media query adds `.text-pad { padding-left: 18px !important; padding-right: 18px !important; }`.
+- **Mailchimp-hosted images**: those three images use `https://mcusercontent.com/e5ad35332666289a0f48013c5/images/` URLs from Mailchimp's content studio (#34), which carry no commit SHA. Its logo stays pinned.
+- **Teal bullets**: `color:#319795` on the `&bull;` cell.
+- **Wording**: the footer says "We sent this email to", and the sign-off says "The PolicyEngine team".
+
+### US layout
+
+`2026-09-08-us-v2.html` first used this layout, and `2026-10-29-us.html` follows it. Where they differ, copy `2026-10-29-us.html`, the newer one. The layout shares these with the UK layout: the Inter `<link>`, a hidden preheader, the 600px `class="container"` table, the 620px breakpoint, `#319795` accents and the four footer merge tags. It has no gradients, so the gradient note below doesn't apply. The rest differs:
+
+| Element | UK layout | US layout |
+|---|---|---|
+| Page | `#0F1419` | `#F2F4F7` |
+| Hidden preheader | `display:none;max-height:0;overflow:hidden;` | adds `font-size: 1px; line-height: 1px; color: #F2F4F7;` |
+| Container | no border or background; each section sets its own white | `background-color: #FFFFFF; border: 1px solid #E2E8F0;` |
+| Header | on the dark page; `white.png`; date only | inside the container, with `border-bottom: 3px solid #319795;`; `teal.png` at `width="106" height="22"`; date and a "View in browser" link |
+| Date, in the `<title>` and header | `27 October 2026` | `October 29, 2026` |
+| Hero | gradient; white `h1`, 28px, weight 800 | white; eyebrow, then a `#1D4044` `h1`, 30px, weight 700 |
+| Eyebrow | 10px, `letter-spacing:0.15em`, `#319795` | 11px, `letter-spacing: 0.14em`, `#2C7A7B` |
+| Section title | `<p>`, 16px, weight 700 | `<h2>`, 20px, weight 600, `line-height: 1.3` |
+| Body text | 13px | 15px |
+| Bullets | 12px text | 14px or 15px text; `color: #319795` on the `&bull;` cell |
+| Between sections | `border-bottom:1px solid #E2E8F0` | no divider; `padding: 32px 40px 0 40px;` leaves the gap |
+| Images | `border-radius:8px` | `border-radius: 6px` |
+| Button | centred; `padding:12px 24px`; weight 600; `border-radius:6px` | left-aligned; `padding: 11px 20px`; weight 700; `border-radius: 4px` |
+| Inline links | weight 600, ending `&nbsp;&rarr;` | weight 500, or 600 where a link leads a bullet or closes the callout panel |
+| Footer links | `#81E6D9`, `margin:0 16px`; X, LinkedIn, Website | `#319795`, `margin: 0 10px`; X, LinkedIn, policyengine.org, Forward to a colleague |
+| Footer text | 11px | 12px, in a second `class="container"` table |
+| Postal address | `#4B5563` | `#94A3B8` |
+
+Only the US layout has these:
+
+- **Colour-scheme metas** in `<head>`: `<meta name="color-scheme" content="light">` and `<meta name="supported-color-schemes" content="light">`.
+- **A `<body>` font stack** that ends in `Roboto, sans-serif` rather than `Arial, sans-serif`.
+- **Its own mobile media query**, keyed to `.pad` and `.h1`:
+  ```html
+  <style type="text/css">
+      @media only screen and (max-width: 620px) {
+          .container { width: 100% !important; }
+          .pad { padding-left: 22px !important; padding-right: 22px !important; }
+          .h1 { font-size: 26px !important; line-height: 1.2 !important; }
+      }
+  </style>
+  ```
+  `2026-09-08-us-v2.html` also has `.speaker-cell` for its two-column speaker grid.
+- **Callout panel** (optional) below the hero: a table cell with `background-color: #E6FFFA; border-left: 3px solid #319795; padding: 18px 20px;`.
+- **"Also in this issue:" jump links** below the panel: 13px `#64748B`, with links styled `color: #319795; text-decoration: none; font-weight: 500;`. Each `href` points at an `<a name="…"></a>` anchor at the top of a later section.
+- **Two more merge tags**: `*|ARCHIVE|*` behind "View in browser" in the header and `*|FORWARD|*` behind "Forward to a colleague" in the footer.
+- **A table-cell button** in `2026-10-29-us.html`: `<td bgcolor="#319795" style="background-color: #319795; border-radius: 4px; padding: 11px 20px;">` around a link with `color: #FFFFFF; text-decoration: none; font-weight: 700; font-size: 14px; display: inline-block;`. `2026-09-08-us-v2.html` styles the `<a>` itself.
+- **Four more colours**, all `@policyengine/ui-kit` tokens:
+
+| Hex | ui-kit token | Used for |
+|---|---|---|
+| `#F2F4F7` | `--color-gray-100` | page background and preheader text |
+| `#2C7A7B` | `--color-teal-600` | eyebrow labels |
+| `#E6FFFA` | `--color-teal-50` | callout panel |
+| `#94A3B8` | `--color-gray-400` | footer postal address |
 
 ### Notes for new editions
 
 These came from the independent review of #31 (2026-10-27).
 
 - **Make the hidden preheader match the campaign's preview text.** The preheader `<div>` text must be the same words as the Mailchimp campaign's preview text (the uploader's `--preview`, or the preview set in Mailchimp). If you change one, change the other. In #31 they differed: the file says "On Budget day at 4:30pm, we'll present our first estimates and take your questions." while the campaign's preview was "We'll present our first estimates on Budget day and take your questions."
-- **Give every `linear-gradient` a solid `background-color` fallback.** caniemail lists no `linear-gradient` support in any Outlook client at the latest version it tested: Windows desktop 2007–2019 (where gradients need VML), Windows Mail, Outlook.com, and the Mac, iOS and Android apps. Without a fallback the element has no background there. The hero and the feature card already do this: `background: linear-gradient(...); background-color:#234E52;`. Put `background-color` after the `background` shorthand, because the shorthand resets it. The hero's 48×3px accent bar has no fallback in either edition, so it doesn't show in Outlook. Don't just add `background-color` to it: caniemail says classic Outlook for Windows ignores `width` and `height` on a `<div>`, so the colour would likely spread across the hero (untested). To give it one, rebuild it as a 48×3 table cell with `bgcolor` and `font-size:0;line-height:0;`, and test that in Outlook before sending.
+- **Give every `linear-gradient` a solid `background-color` fallback.** caniemail lists no `linear-gradient` support in any Outlook client at the latest version it tested: Windows desktop 2007–2019 (where gradients need VML), Windows Mail, Outlook.com, and the Mac, iOS and Android apps. Without a fallback the element has no background there. The hero and the feature card already do this: `background: linear-gradient(...); background-color:#234E52;`. Put `background-color` after the `background` shorthand, because the shorthand resets it. The hero's 48×3px accent bar has no fallback in the UK editions described here, so it doesn't show in Outlook. Don't just add `background-color` to it: caniemail says classic Outlook for Windows ignores `width` and `height` on a `<div>`, so the colour would likely spread across the hero (untested). To give it one, rebuild it as a 48×3 table cell with `bgcolor` and `font-size:0;line-height:0;`, and test that in Outlook before sending.
 
 ### Links
 
@@ -126,9 +192,9 @@ Every link goes to policyengine.org, never to the address of the platform that h
 
 ## Creating New Newsletters
 
-**IMPORTANT: Always start from the most recent newsletter as a template.** The template structure evolves over time, so copying from the latest edition ensures you use current styling, layout patterns, and best practices.
+**IMPORTANT: Always start from the most recent newsletter as a template.** The template structure evolves over time, so copying from the latest edition ensures you use current styling, layout patterns, and best practices. UK and US editions use different layouts, so take the most recent edition for the same audience.
 
-1. Find the most recent newsletter in `editions/` (sorted by date)
+1. Find the most recent newsletter for your audience in `editions/` (sorted by date): `*-uk*.html` or `*-us*.html`
 2. Copy it as a new file with date format: `YYYY-MM-DD-{audience}.html` (e.g., `2025-12-02-uk.html`)
 3. Update content while maintaining:
    - Inline styles for email client compatibility
@@ -164,7 +230,7 @@ Use a full commit SHA, not a branch name or `main`; see "Images" under "Newslett
 - **No JavaScript**: Email clients block JavaScript
 - **External images**: Use full URLs for all images
 - **Responsive design**: Use media queries in `<style>` tags for mobile
-- **Logo format**: use the PNG logo (the template's `white.png`), not SVG; Outlook and some other clients block SVGs
+- **Logo format**: use the PNG logo (`white.png` in the UK layout, `teal.png` in the US layout), not SVG; Outlook and some other clients block SVGs
 
 ## File Naming Conventions
 
